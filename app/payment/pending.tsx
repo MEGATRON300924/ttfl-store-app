@@ -1,0 +1,10 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { GlassCard } from "@/components/GlassCard";
+
+export default function PaymentPendingScreen() {
+  const { orderNumber } = useLocalSearchParams<{ orderNumber: string }>();
+  return <View style={styles.screen}><Stack.Screen options={{ headerShown: true, title: "Payment" }} /><GlassCard style={styles.card} intensity={28}><View style={styles.icon}><Ionicons name="card-outline" size={30} color="#111" /></View><Text style={styles.title}>Payment started</Text><Text style={styles.copy}>Your payment page has opened. Once Paystack confirms the payment, your TTFL order will continue through the normal order and tracking flow.</Text><Text style={styles.order}>Order {orderNumber}</Text><Pressable style={styles.button} onPress={() => router.replace({ pathname: "/orders/[orderNumber]", params: { orderNumber } })}><Text style={styles.buttonText}>View order</Text><Ionicons name="arrow-forward" size={17} color="#fff" /></Pressable><Pressable onPress={() => router.replace("/(tabs)/home")}><Text style={styles.home}>Back to TTFL Store</Text></Pressable></GlassCard></View>;
+}
+const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: "#f7f7f7", padding: 18, justifyContent: "center" }, card: { borderRadius: 25, padding: 24, alignItems: "center" }, icon: { width: 62, height: 62, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.05)", alignItems: "center", justifyContent: "center" }, title: { marginTop: 17, fontSize: 25, fontWeight: "800", color: "#111" }, copy: { marginTop: 8, maxWidth: 320, textAlign: "center", fontSize: 14, lineHeight: 21, color: "#707070" }, order: { marginTop: 14, fontWeight: "800", color: "#111" }, button: { width: "100%", height: 52, borderRadius: 15, backgroundColor: "#111", marginTop: 20, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, buttonText: { color: "#fff", fontWeight: "800" }, home: { marginTop: 17, color: "#777", fontWeight: "700" } });
