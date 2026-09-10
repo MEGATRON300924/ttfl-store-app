@@ -5,6 +5,8 @@ import { router } from "expo-router";
 import { api } from "./api";
 import { normalizeTTFLLink } from "./deep-links";
 
+const NOTIFICATION_CHANNEL_ID = "orders";
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }),
 });
@@ -57,7 +59,7 @@ async function registerToken(token: string) {
 export async function registerPushDevice() {
   if (Platform.OS === "web") return null;
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", { name: "TTFL Store", importance: Notifications.AndroidImportance.DEFAULT, vibrationPattern: [0, 200], sound: "default" });
+    await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, { name: "Orders & updates", importance: Notifications.AndroidImportance.DEFAULT, vibrationPattern: [0, 200], sound: "default" });
   }
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
   const token = await getExpoPushToken(projectId);
