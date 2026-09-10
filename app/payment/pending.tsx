@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { GlassCard } from "@/components/GlassCard";
 import { api, ApiError } from "@/lib/api";
+import { useCart } from "@/lib/cart";
 
 type PaymentOrder = { orderNumber: string; paymentStatus?: string; status?: string };
 
 export default function PaymentPendingScreen() {
   const { orderNumber, reference } = useLocalSearchParams<{ orderNumber: string; reference?: string }>();
+  const { clear } = useCart();
   const [status, setStatus] = useState("PENDING");
   const [checking, setChecking] = useState(Boolean(reference));
 
@@ -23,8 +25,12 @@ export default function PaymentPendingScreen() {
         if (cancelled) return;
         const nextStatus = String(result.order.paymentStatus ?? result.order.status ?? "PENDING").toUpperCase();
         setStatus(nextStatus);
-        if (nextStatus !== "PAID") timer = setTimeout(check, 10000);
-        else setChecking(false);
+        if (nextStatus === "PAID") {
+          clear();
+          setChecking(false);
+        } else {
+          timer = setTimeout(check, 10000);
+        }
       } catch (error) {
         if (cancelled) return;
         if (error instanceof ApiError && error.status === 404) setStatus("NOT_FOUND");
@@ -34,7 +40,7 @@ export default function PaymentPendingScreen() {
 
     check();
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, [reference]);
+  }, [clear, reference]);
 
   const paid = status === "PAID";
   const failed = ["FAILED", "CANCELLED", "ABANDONED"].includes(status);
@@ -45,7 +51,7 @@ export default function PaymentPendingScreen() {
       <GlassCard style={styles.card} intensity={28}>
         <View style={[styles.icon, paid && styles.successIcon, failed && styles.failedIcon]}><Ionicons name={paid ? "checkmark" : failed ? "close" : "card-outline"} size={30} color="#111" /></View>
         <Text style={styles.title}>{paid ? "Payment confirmed" : failed ? "Payment not completed" : "Payment started"}</Text>
-        <Text style={styles.copy}>{paid ? "Your payment has been confirmed and your TTFL order is now moving through the normal order and tracking flow." : failed ? "The payment was not completed. You can return to the order and try again if the order is still awaiting payment." : "Your payment page has opened. TTFL is checking for confirmation automatically, so you do not need to keep refreshing."}</Text>
+        <Text style={styles.copy}>{paid ? "Your payment has been confirmed and your TTFL order is now moving through the normal order and tracking flow." : failed ? "The payment was not completed. Your cart is still available so you can try again if the order is still awaiting payment." : "Your payment page has opened. TTFL is checking for confirmation automatically, so you do not need to keep refreshing."}</Text>
         <Text style={styles.order}>Order {orderNumber}</Text>
         {!paid && !failed && checking && <View style={styles.checking}><ActivityIndicator size="small" /><Text style={styles.checkingText}>Checking payment status…</Text></View>}
         <Pressable style={styles.button} onPress={() => router.replace({ pathname: "/orders/[orderNumber]", params: { orderNumber } })}><Text style={styles.buttonText}>View order</Text><Ionicons name="arrow-forward" size={17} color="#fff" /></Pressable>
