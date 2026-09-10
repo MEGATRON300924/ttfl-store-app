@@ -9,13 +9,28 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ng.name.ttflstore.app"
+      "bundleIdentifier": "ng.name.ttflstore.app",
+      "associatedDomains": ["applinks:ttflstore.name.ng"]
     },
     "android": {
       "package": "ng.name.ttflstore.app",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [
+            {
+              "scheme": "https",
+              "host": "ttflstore.name.ng",
+              "pathPrefix": "/"
+            }
+          ]
+        }
+      ]
     },
     "plugins": [
       "expo-router",
