@@ -1,8 +1,27 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { Search, SlidersHorizontal, ArrowUpRight } from "lucide-react-native";
+import { GlassCard } from "@/components/GlassCard";
 import { api, ApiError } from "@/lib/api";
 
-type Product = { id: string; slug: string; name: string; price?: number; currency?: string; imageUrl?: string | null };
+type Product = {
+  id: string;
+  slug: string;
+  name: string;
+  price?: number;
+  currency?: string;
+  imageUrl?: string | null;
+};
+
 type ProductResponse = Product[] | { products?: Product[]; items?: Product[] };
 
 export default function ExploreScreen() {
@@ -12,23 +31,288 @@ export default function ExploreScreen() {
   const [error, setError] = useState("");
 
   async function load(search = query) {
-    setLoading(true); setError("");
+    setLoading(true);
+    setError("");
+
     try {
       const params = search.trim() ? `?q=${encodeURIComponent(search.trim())}` : "";
       const result = await api<ProductResponse>(`/api/products${params}`);
       const list = Array.isArray(result) ? result : result.products ?? result.items ?? [];
       setProducts(list);
-    } catch (err) { setError(err instanceof ApiError ? err.message : "Could not load products."); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not load products.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => { load(""); }, []);
+  useEffect(() => {
+    load("");
+  }, []);
 
-  return <View style={styles.screen}>
-    <View style={styles.header}><Text style={styles.title}>Explore</Text><Text style={styles.subtitle}>Browse the TTFL marketplace</Text></View>
-    <View style={styles.search}><TextInput value={query} onChangeText={setQuery} onSubmitEditing={() => load()} placeholder="Search products" returnKeyType="search" style={styles.input} /></View>
-    {loading ? <View style={styles.center}><ActivityIndicator size="large" /></View> : error ? <View style={styles.center}><Text style={styles.error}>{error}</Text><Pressable onPress={() => load()}><Text style={styles.retry}>Try again</Text></Pressable></View> : <FlatList data={products} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} ListEmptyComponent={<Text style={styles.empty}>No products found yet.</Text>} renderItem={({ item }) => <View style={styles.product}><View style={styles.productImage}><Text style={styles.productInitial}>{item.name?.[0]?.toUpperCase() ?? "P"}</Text></View><View style={styles.productInfo}><Text style={styles.productName} numberOfLines={2}>{item.name}</Text><Text style={styles.price}>{item.currency ?? "₦"}{typeof item.price === "number" ? item.price.toLocaleString() : "—"}</Text><Text style={styles.slug}>{item.slug}</Text></View></View>} />}
-  </View>;
+  return (
+    <View style={styles.screen}>
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          <View>
+            <View style={styles.headerRow}>
+              <View>
+                <Text style={styles.eyebrow}>TTFL STORE</Text>
+                <Text style={styles.title}>Explore</Text>
+                <Text style={styles.subtitle}>Find something worth adding to your cart.</Text>
+              </View>
+              <Pressable style={styles.filterButton} accessibilityLabel="Filter products">
+                <SlidersHorizontal size={19} color="#111111" strokeWidth={2.2} />
+              </Pressable>
+            </View>
+
+            <GlassCard style={styles.searchCard} intensity={28}>
+              <View style={styles.searchRow}>
+                <Search size={19} color="#777777" strokeWidth={2.1} />
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  onSubmitEditing={() => load()}
+                  placeholder="Search products"
+                  placeholderTextColor="#929292"
+                  returnKeyType="search"
+                  style={styles.input}
+                />
+              </View>
+            </GlassCard>
+
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>Marketplace</Text>
+              <Text style={styles.sectionCount}>{products.length} items</Text>
+            </View>
+
+            {loading && (
+              <View style={styles.center}>
+                <ActivityIndicator size="small" />
+              </View>
+            )}
+
+            {!loading && error && (
+              <GlassCard style={styles.messageCard} intensity={24}>
+                <Text style={styles.error}>{error}</Text>
+                <Pressable onPress={() => load()} style={styles.retryButton}>
+                  <Text style={styles.retry}>Try again</Text>
+                </Pressable>
+              </GlassCard>
+            )}
+          </View>
+        }
+        ListEmptyComponent={
+          !loading && !error ? (
+            <GlassCard style={styles.messageCard} intensity={24}>
+              <Text style={styles.emptyTitle}>Nothing here yet</Text>
+              <Text style={styles.empty}>Try another search or check back soon.</Text>
+            </GlassCard>
+          ) : null
+        }
+        renderItem={({ item }) => (
+          <Pressable style={({ pressed }) => [styles.productPressable, pressed && styles.pressed]}>
+            <GlassCard style={styles.productCard} intensity={26}>
+              <View style={styles.productImage}>
+                {item.imageUrl ? (
+                  <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+                ) : (
+                  <Text style={styles.productInitial}>{item.name?.[0]?.toUpperCase() ?? "P"}</Text>
+                )}
+              </View>
+              <View style={styles.productInfo}>
+                <View style={styles.productTopRow}>
+                  <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+                  <ArrowUpRight size={17} color="#777777" />
+                </View>
+                <Text style={styles.price}>
+                  {item.currency ?? "₦"}{typeof item.price === "number" ? item.price.toLocaleString() : "—"}
+                </Text>
+                <Text style={styles.slug} numberOfLines={1}>{item.slug}</Text>
+              </View>
+            </GlassCard>
+          </Pressable>
+        )}
+      />
+    </View>
+  );
 }
-const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: "#fff", paddingTop: 58 }, header: { paddingHorizontal: 20 }, title: { fontSize: 30, fontWeight: "800", color: "#111" }, subtitle: { color: "#6b7280", marginTop: 4 }, search: { margin: 18, height: 50, borderRadius: 14, backgroundColor: "#f5f5f5", paddingHorizontal: 14, justifyContent: "center" }, input: { fontSize: 16, color: "#111" }, list: { paddingHorizontal: 18, paddingBottom: 28, gap: 10 }, product: { flexDirection: "row", borderWidth: 1, borderColor: "#eee", borderRadius: 16, padding: 12 }, productImage: { width: 72, height: 72, borderRadius: 12, backgroundColor: "#f1f1f1", alignItems: "center", justifyContent: "center" }, productInitial: { fontSize: 24, fontWeight: "800", color: "#9ca3af" }, productInfo: { flex: 1, paddingLeft: 12, justifyContent: "center" }, productName: { fontWeight: "700", fontSize: 15, color: "#111" }, price: { marginTop: 6, fontWeight: "800", color: "#111" }, slug: { color: "#9ca3af", fontSize: 11, marginTop: 2 }, center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }, error: { color: "#dc2626", textAlign: "center" }, retry: { marginTop: 10, fontWeight: "700", color: "#111" }, empty: { textAlign: "center", color: "#6b7280", marginTop: 40 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#f7f7f7",
+  },
+  list: {
+    paddingTop: 62,
+    paddingHorizontal: 18,
+    paddingBottom: 116,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingHorizontal: 2,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.4,
+    color: "#8a8a8a",
+    marginBottom: 5,
+  },
+  title: {
+    fontSize: 32,
+    lineHeight: 36,
+    fontWeight: "800",
+    letterSpacing: -1.1,
+    color: "#111111",
+  },
+  subtitle: {
+    maxWidth: 270,
+    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#707070",
+  },
+  filterButton: {
+    width: 44,
+    height: 44,
+    marginTop: 4,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
+  },
+  searchCard: {
+    marginTop: 22,
+    borderRadius: 18,
+  },
+  searchRow: {
+    minHeight: 54,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: "#111111",
+    paddingVertical: 0,
+  },
+  sectionRow: {
+    marginTop: 26,
+    marginBottom: 12,
+    paddingHorizontal: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111111",
+    letterSpacing: -0.3,
+  },
+  sectionCount: {
+    fontSize: 12,
+    color: "#929292",
+  },
+  productPressable: {
+    marginBottom: 10,
+  },
+  pressed: {
+    opacity: 0.84,
+    transform: [{ scale: 0.992 }],
+  },
+  productCard: {
+    borderRadius: 20,
+  },
+  productImage: {
+    width: 88,
+    height: 88,
+    margin: 10,
+    borderRadius: 15,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.045)",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+  productInitial: {
+    fontSize: 27,
+    fontWeight: "800",
+    color: "#b0b0b0",
+  },
+  productInfo: {
+    flex: 1,
+    paddingVertical: 15,
+    paddingRight: 15,
+  },
+  productTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  productName: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "700",
+    color: "#111111",
+  },
+  price: {
+    marginTop: 8,
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#111111",
+  },
+  slug: {
+    marginTop: 3,
+    fontSize: 11,
+    color: "#9a9a9a",
+  },
+  center: {
+    paddingVertical: 30,
+    alignItems: "center",
+  },
+  messageCard: {
+    padding: 18,
+    borderRadius: 18,
+  },
+  error: {
+    color: "#b42318",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    marginTop: 10,
+  },
+  retry: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#111111",
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#111111",
+  },
+  empty: {
+    marginTop: 5,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#777777",
+  },
 });
