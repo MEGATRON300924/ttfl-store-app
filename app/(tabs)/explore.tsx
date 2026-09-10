@@ -11,6 +11,7 @@ type Category = { id: string; name: string; slug: string; icon?: string | null; 
 type Sort = "relevance" | "price_asc" | "price_desc" | "newest" | "rating";
 type Condition = "" | "NEW" | "USED";
 type SellingMethod = "" | "CHECKOUT" | "EXTERNAL_LINK" | "WHATSAPP";
+type FilterOverrides = Partial<{ category: string; condition: Condition; sellingMethod: SellingMethod; sort: Sort; minPrice: string; maxPrice: string }>;
 
 export default function ExploreScreen() {
   const [query, setQuery] = useState("");
@@ -31,18 +32,24 @@ export default function ExploreScreen() {
 
   const activeFilterCount = useMemo(() => [category, condition, sellingMethod, minPrice, maxPrice, sort !== "relevance" ? sort : ""].filter(Boolean).length, [category, condition, sellingMethod, minPrice, maxPrice, sort]);
 
-  async function load(nextPage = 1, append = false) {
+  async function load(nextPage = 1, append = false, overrides: FilterOverrides = {}) {
     if (append) setLoadingMore(true); else setLoading(true);
     setError("");
     try {
+      const selectedCategory = overrides.category ?? category;
+      const selectedCondition = overrides.condition ?? condition;
+      const selectedSellingMethod = overrides.sellingMethod ?? sellingMethod;
+      const selectedSort = overrides.sort ?? sort;
+      const selectedMinPrice = overrides.minPrice ?? minPrice;
+      const selectedMaxPrice = overrides.maxPrice ?? maxPrice;
       const params = new URLSearchParams();
       if (query.trim()) params.set("q", query.trim());
-      if (category) params.set("category", category);
-      if (condition) params.set("condition", condition);
-      if (sellingMethod) params.set("sellingMethod", sellingMethod);
-      if (sort) params.set("sort", sort);
-      if (minPrice.trim()) params.set("minPrice", minPrice.trim());
-      if (maxPrice.trim()) params.set("maxPrice", maxPrice.trim());
+      if (selectedCategory) params.set("category", selectedCategory);
+      if (selectedCondition) params.set("condition", selectedCondition);
+      if (selectedSellingMethod) params.set("sellingMethod", selectedSellingMethod);
+      if (selectedSort) params.set("sort", selectedSort);
+      if (selectedMinPrice.trim()) params.set("minPrice", selectedMinPrice.trim());
+      if (selectedMaxPrice.trim()) params.set("maxPrice", selectedMaxPrice.trim());
       params.set("page", String(nextPage));
       params.set("limit", "24");
       const result = await api<ProductResponse>(`/api/products?${params.toString()}`);
@@ -88,7 +95,7 @@ export default function ExploreScreen() {
             <Pressable onPress={() => setFiltersOpen(true)} style={styles.filterButton} accessibilityLabel="Filter products"><Ionicons name="options-outline" size={20} color="#111" />{activeFilterCount > 0 && <View style={styles.filterBadge}><Text style={styles.filterBadgeText}>{activeFilterCount}</Text></View>}</Pressable>
           </View>
           <GlassCard style={styles.searchCard} intensity={28}><View style={styles.searchRow}><Ionicons name="search-outline" size={19} color="#777" /><TextInput value={query} onChangeText={setQuery} onSubmitEditing={() => load(1)} placeholder="Search products" placeholderTextColor="#929292" returnKeyType="search" style={styles.input} /><Pressable onPress={() => { setQuery(""); load(1); }} disabled={!query}><Ionicons name="close-circle" size={18} color={query ? "#888" : "transparent"} /></Pressable></View></GlassCard>
-          {categories.length > 0 && <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}><Pressable onPress={() => { setCategory(""); load(1); }} style={[styles.categoryChip, !category && styles.categoryChipActive]}><Text style={[styles.categoryText, !category && styles.categoryTextActive]}>All</Text></Pressable>{categories.map((item) => <Pressable key={item.id} onPress={() => { setCategory(item.slug); load(1); }} style={[styles.categoryChip, category === item.slug && styles.categoryChipActive]}><Text style={[styles.categoryText, category === item.slug && styles.categoryTextActive]}>{item.icon ? `${item.icon} ` : ""}{item.name}</Text></Pressable>)}</ScrollView>}
+          {categories.length > 0 && <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}><Pressable onPress={() => { setCategory(""); load(1, false, { category: "" }); }} style={[styles.categoryChip, !category && styles.categoryChipActive]}><Text style={[styles.categoryText, !category && styles.categoryTextActive]}>All</Text></Pressable>{categories.map((item) => <Pressable key={item.id} onPress={() => { setCategory(item.slug); load(1, false, { category: item.slug }); }} style={[styles.categoryChip, category === item.slug && styles.categoryChipActive]}><Text style={[styles.categoryText, category === item.slug && styles.categoryTextActive]}>{item.icon ? `${item.icon} ` : ""}{item.name}</Text></Pressable>)}</ScrollView>}
           <View style={styles.sectionRow}><Text style={styles.sectionTitle}>{category ? categories.find((item) => item.slug === category)?.name ?? "Marketplace" : "Marketplace"}</Text><Text style={styles.sectionCount}>{products.length} items</Text></View>
           {loading && <View style={styles.center}><ActivityIndicator size="small" /></View>}
           {!loading && error && <GlassCard style={styles.messageCard} intensity={24}><Text style={styles.error}>{error}</Text><Pressable onPress={() => load(page)} style={styles.retryButton}><Text style={styles.retry}>Try again</Text></Pressable></GlassCard>}
