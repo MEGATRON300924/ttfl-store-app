@@ -12,8 +12,7 @@ function withQuery(pathname: string, search: string) {
 
 /**
  * Converts TTFL Store web/custom-scheme links into routes understood by the
- * mobile app. Unknown links are returned unchanged so Expo Router can handle
- * them normally instead of swallowing third-party URLs.
+ * mobile app. Unknown external URLs are never opened as native routes.
  */
 export function normalizeTTFLLink(input: string) {
   try {
@@ -24,9 +23,7 @@ export function normalizeTTFLLink(input: string) {
     const isHttp = url.protocol === "http:" || url.protocol === "https:";
     const isTTFL = url.protocol === APP_SCHEME || (isHttp && url.hostname === APP_HOST);
 
-    if (!isTTFL) {
-      return value.startsWith("/") ? value : null;
-    }
+    if (!isTTFL) return value.startsWith("/") ? value : null;
 
     let path = url.pathname || "/";
     if (url.protocol === APP_SCHEME && url.hostname && url.hostname !== "app") {
@@ -35,12 +32,17 @@ export function normalizeTTFLLink(input: string) {
 
     path = cleanPath(path);
 
-    // The web marketplace uses plural /products and /store routes while the
-    // native app intentionally keeps shorter route names.
+    // Web/native route aliases.
     if (path.startsWith("/products/")) path = path.replace(/^\/products\//, "/product/");
     if (path.startsWith("/store/")) path = path.replace(/^\/store\//, "/vendor/");
+    if (path.startsWith("/vendors/")) path = path.replace(/^\/vendors\//, "/vendor/");
 
-    // Paystack's existing web callback can safely land in the native payment
+    // Order links from the web, email and notifications should land on the
+    // authenticated native order screen when possible.
+    const orderAlias = path.match(/^\/order\/([^/]+)$/);
+    if (orderAlias) return withQuery(`/orders/${encodeURIComponent(decodeURIComponent(orderAlias[1]))}`, url.search);
+
+    // Paystack/web confirmation links can safely land in the native payment
     // status screen. The backend verification endpoint remains unchanged.
     const confirmation = path.match(/^\/orders\/([^/]+)\/confirm$/);
     if (confirmation) {
@@ -50,7 +52,7 @@ export function normalizeTTFLLink(input: string) {
       return `/payment/pending?${params.toString()}`;
     }
 
-    if (path === "/payment/callback") {
+    if (path === "/payment/callback" || path === "/payment/success") {
       return `/payment/pending${url.search}`;
     }
 
