@@ -33,10 +33,11 @@ export async function requestNotificationPermission() {
   return requested.granted;
 }
 
-export async function getExpoPushToken(projectId?: string) {
+export async function getExpoPushToken(projectId?: string, devicePushToken?: Notifications.DevicePushToken) {
   const granted = await requestNotificationPermission();
   if (!granted) return null;
-  const token = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
+  const options = projectId ? { projectId, ...(devicePushToken ? { devicePushToken } : {}) } : devicePushToken ? { devicePushToken } : undefined;
+  const token = await Notifications.getExpoPushTokenAsync(options);
   return token.data;
 }
 
@@ -61,8 +62,14 @@ export async function registerPushDevice() {
 
 export function startPushTokenRotationListener() {
   if (Platform.OS === "web") return () => {};
-  const subscription = Notifications.addPushTokenListener(async () => {
-    try { await registerPushDevice(); } catch { /* retry on the next authenticated launch */ }
+  const subscription = Notifications.addPushTokenListener(async (devicePushToken) => {
+    try {
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+      const token = await getExpoPushToken(projectId, devicePushToken);
+      if (token) await registerToken(token);
+    } catch {
+      // Registration is retried on the next authenticated app launch.
+    }
   });
   return () => subscription.remove();
 }
@@ -71,5 +78,7 @@ export async function unregisterPushDevice(token: string | null) {
   if (!token) return;
   try {
     await api("/api/notifications/devices", { method: "DELETE", body: JSON.stringify({ expoPushToken: token }), skipRefresh: true });
-  } catch { /* notification cleanup must never block sign-out */ }
+  } catch {
+    // Notification cleanup must never block sign-out.
+  }
 }
