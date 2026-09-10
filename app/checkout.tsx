@@ -33,7 +33,6 @@ export default function CheckoutScreen() {
       });
       if (result.checkoutUrl) {
         await Linking.openURL(result.checkoutUrl);
-        clear();
         router.replace({ pathname: "/payment/pending", params: { orderNumber: result.order.orderNumber, reference: result.order.paymentReference ?? "" } });
       } else {
         clear();
