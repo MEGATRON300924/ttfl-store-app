@@ -1,0 +1,21 @@
+import { Link } from "expo-router";
+import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import { useAuth } from "@/lib/auth";
+
+export default function HomeScreen() {
+  const { user } = useAuth();
+  const firstName = user?.firstName?.trim() || "there";
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <View style={styles.header}><View><Text style={styles.eyebrow}>TTFL STORE</Text><Text style={styles.title}>Hey, {firstName} 👋</Text></View><View style={styles.avatar}><Text style={styles.avatarText}>{firstName[0]?.toUpperCase() ?? "T"}</Text></View></View>
+      <Link href="/(tabs)/explore" asChild><Pressable style={styles.search}><Text style={styles.searchIcon}>⌕</Text><Text style={styles.searchText}>Search products, stores and more</Text></Pressable></Link>
+      <View style={styles.hero}><Text style={styles.heroEyebrow}>SHOP TTFL</Text><Text style={styles.heroTitle}>Find what you need.</Text><Text style={styles.heroCopy}>Discover products from stores across the TTFL marketplace.</Text><Link href="/(tabs)/explore" asChild><Pressable style={styles.heroButton}><Text style={styles.heroButtonText}>Explore marketplace</Text></Pressable></Link></View>
+      <Text style={styles.sectionTitle}>Quick access</Text>
+      <View style={styles.grid}><Quick title="Orders" href="/(tabs)/orders" /><Quick title="Explore" href="/(tabs)/explore" /><Quick title="Account" href="/(tabs)/account" /></View>
+      <Text style={styles.sectionTitle}>Your marketplace</Text><View style={styles.card}><Text style={styles.cardTitle}>More features are coming</Text><Text style={styles.cardCopy}>Products, vendors, wishlist, checkout, payments and real-time order tracking will all use the same TTFL backend as the web store.</Text></View>
+    </ScrollView>
+  );
+}
+function Quick({ title, href }: { title: string; href: "/(tabs)/orders" | "/(tabs)/explore" | "/(tabs)/account" }) { return <Link href={href} asChild><Pressable style={styles.quick}><Text style={styles.quickTitle}>{title}</Text><Text style={styles.arrow}>›</Text></Pressable></Link>; }
+const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: "#fff" }, content: { padding: 20, paddingTop: 62, paddingBottom: 32 }, header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }, eyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 1.4, color: "#9ca3af" }, title: { fontSize: 28, fontWeight: "800", color: "#111", letterSpacing: -0.8, marginTop: 4 }, avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#111", alignItems: "center", justifyContent: "center" }, avatarText: { color: "#fff", fontWeight: "800", fontSize: 16 }, search: { height: 52, borderRadius: 15, backgroundColor: "#f5f5f5", flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginBottom: 18 }, searchIcon: { fontSize: 24, color: "#6b7280", marginRight: 10 }, searchText: { color: "#9ca3af", fontSize: 15 }, hero: { backgroundColor: "#111", borderRadius: 24, padding: 24, marginBottom: 30 }, heroEyebrow: { color: "#a3a3a3", fontSize: 11, fontWeight: "800", letterSpacing: 1.2 }, heroTitle: { color: "#fff", fontSize: 30, fontWeight: "800", letterSpacing: -1, marginTop: 8 }, heroCopy: { color: "#c4c4c4", fontSize: 15, lineHeight: 22, marginTop: 8, maxWidth: 300 }, heroButton: { backgroundColor: "#fff", paddingHorizontal: 16, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", marginTop: 20 }, heroButtonText: { color: "#111", fontWeight: "700" }, sectionTitle: { fontSize: 19, fontWeight: "800", color: "#111", marginBottom: 12, marginTop: 2 }, grid: { gap: 10, marginBottom: 26 }, quick: { height: 58, borderWidth: 1, borderColor: "#ededed", borderRadius: 15, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, quickTitle: { fontWeight: "700", color: "#111", fontSize: 15 }, arrow: { fontSize: 24, color: "#9ca3af" }, card: { borderRadius: 18, backgroundColor: "#f7f7f7", padding: 18 }, cardTitle: { fontSize: 16, fontWeight: "800", color: "#111" }, cardCopy: { color: "#6b7280", lineHeight: 21, marginTop: 6, fontSize: 14 }
+});
