@@ -14,7 +14,7 @@ type Product = {
   category?: { name: string }; vendor?: { storeName: string; storeSlug: string; verified: boolean; location: string | null };
 };
 
-type ProductResponse = Product | { items?: Product[]; products?: Product[] };
+type ProductResponse = { product: Product } | Product | { items?: Product[]; products?: Product[] };
 
 export default function ProductDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -28,11 +28,15 @@ export default function ProductDetailScreen() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    api<ProductResponse>(`/api/products?q=${encodeURIComponent(slug)}`)
+    setError("");
+    api<ProductResponse>(`/api/products/${encodeURIComponent(slug)}`)
       .then((result) => {
-        const items = Array.isArray(result) ? result : result.items ?? result.products ?? [];
-        const exact = items.find((item) => item.slug === slug);
-        setProduct(exact ?? (items[0] ?? ("id" in result ? result : null)));
+        if ("product" in result) setProduct(result.product);
+        else if ("id" in result) setProduct(result);
+        else {
+          const items = result.items ?? result.products ?? [];
+          setProduct(items.find((item) => item.slug === slug) ?? items[0] ?? null);
+        }
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : "Could not load this product."))
       .finally(() => setLoading(false));
@@ -45,16 +49,7 @@ export default function ProductDetailScreen() {
 
   function addToCart() {
     if (!product || unavailable) return;
-    addItem({
-      productId: product.id,
-      slug: product.slug,
-      name: product.name,
-      price,
-      currency: product.currency ?? "₦",
-      imageUrl: image,
-      stock: product.stock,
-      sellingMethod: product.sellingMethod ?? "CHECKOUT",
-    }, quantity);
+    addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock, sellingMethod: product.sellingMethod ?? "CHECKOUT" }, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
   }
@@ -74,21 +69,19 @@ export default function ProductDetailScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.metaRow}>
-            <Text style={styles.category}>{product.category?.name ?? "Marketplace"}</Text>
-            {product.condition && <Text style={styles.condition}>{product.condition}</Text>}
-          </View>
+          <View style={styles.metaRow}><Text style={styles.category}>{product.category?.name ?? "Marketplace"}</Text>{product.condition && <Text style={styles.condition}>{product.condition}</Text>}</View>
           <Text style={styles.title}>{product.name}</Text>
           <Text style={styles.price}>{product.currency ?? "₦"}{price.toLocaleString()}</Text>
           {previousPrice > price && <Text style={styles.previous}>{product.currency ?? "₦"}{previousPrice.toLocaleString()}</Text>}
-
           {product.avgRating && <View style={styles.rating}><Ionicons name="star" size={16} color="#111" /><Text style={styles.ratingText}>{product.avgRating} · {product.reviewCount ?? 0} reviews</Text></View>}
 
-          <GlassCard style={styles.vendorCard} intensity={22}>
-            <View style={styles.vendorIcon}><Ionicons name={product.vendor?.verified ? "checkmark-circle" : "storefront-outline"} size={20} color="#111" /></View>
-            <View style={styles.vendorText}><Text style={styles.vendorName}>{product.vendor?.storeName ?? "TTFL Store"}</Text><Text style={styles.vendorLocation}>{product.vendor?.location ?? product.location ?? "Marketplace seller"}</Text></View>
-            <Ionicons name="chevron-forward" size={18} color="#999" />
-          </GlassCard>
+          <Pressable onPress={() => product.vendor?.storeSlug && router.push({ pathname: "/vendor/[slug]", params: { slug: product.vendor.storeSlug } })} disabled={!product.vendor?.storeSlug}>
+            <GlassCard style={styles.vendorCard} intensity={22}>
+              <View style={styles.vendorIcon}><Ionicons name={product.vendor?.verified ? "checkmark-circle" : "storefront-outline"} size={20} color="#111" /></View>
+              <View style={styles.vendorText}><Text style={styles.vendorName}>{product.vendor?.storeName ?? "TTFL Store"}</Text><Text style={styles.vendorLocation}>{product.vendor?.location ?? product.location ?? "Marketplace seller"}</Text></View>
+              {product.vendor?.storeSlug && <Ionicons name="chevron-forward" size={18} color="#999" />}
+            </GlassCard>
+          </Pressable>
 
           <GlassCard style={styles.infoCard} intensity={22}>
             <Text style={styles.sectionTitle}>About this product</Text>
