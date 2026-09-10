@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
 import { api, ApiError } from "./api";
 import { clearSession, getAccessToken, saveSession, type SessionTokens } from "./session";
+import { registerPushDevice, unregisterPushDevice } from "./notifications";
 
 export type User = {
   id: string;
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pushTokenRef = useRef<string | null>(null);
 
   const refreshUser = useCallback(async () => {
     const token = await getAccessToken();
@@ -48,6 +50,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     refreshUser().catch(() => setUser(null)).finally(() => setLoading(false));
   }, [refreshUser]);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      registerPushDevice().then((token) => {
+        if (!cancelled) pushTokenRef.current = token;
+      }).catch(() => {});
+    }, 1200);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [user?.id]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const result = await api<{ user: User } & SessionTokens>("/api/auth/mobile/login", {
@@ -70,6 +83,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const signOut = useCallback(async () => {
+    await unregisterPushDevice(pushTokenRef.current);
+    pushTokenRef.current = null;
     try { await api("/api/auth/logout", { method: "POST", skipRefresh: true }); } catch {}
     await clearSession();
     setUser(null);
