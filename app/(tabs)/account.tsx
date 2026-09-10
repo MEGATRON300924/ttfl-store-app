@@ -1,6 +1,6 @@
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ChevronRight, LogOut, ShieldCheck, UserRound } from "lucide-react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { GlassCard } from "@/components/GlassCard";
 import { useAuth } from "@/lib/auth";
 
@@ -41,12 +41,12 @@ export default function AccountScreen() {
 
       <Text style={styles.section}>QUICK ACCESS</Text>
       <GlassCard style={styles.actionsCard} intensity={24}>
-        <Action icon={<UserRound size={18} color="#111" />} title="My orders" subtitle="View and track your purchases" onPress={() => router.push("/(tabs)/orders")} />
-        <Action icon={<ShieldCheck size={18} color="#111" />} title="Account security" subtitle="Your TTFL account and session" onPress={() => {}} />
+        <Action icon={<Ionicons name="receipt-outline" size={18} color="#111" />} title="My orders" subtitle="View and track your purchases" onPress={() => router.push("/(tabs)/orders")} />
+        <Action icon={<Ionicons name="shield-checkmark-outline" size={18} color="#111" />} title="Account security" subtitle="Your TTFL account and session" onPress={() => {}} />
       </GlassCard>
 
       <Pressable style={({ pressed }) => [styles.logout, pressed && styles.pressed]} onPress={logout}>
-        <LogOut size={18} color="#b42318" />
+        <Ionicons name="log-out-outline" size={18} color="#b42318" />
         <Text style={styles.logoutText}>Sign out</Text>
       </Pressable>
     </ScrollView>
@@ -70,7 +70,7 @@ function Action({ icon, title, subtitle, onPress }: { icon: React.ReactNode; tit
         <Text style={styles.actionTitle}>{title}</Text>
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
       </View>
-      <ChevronRight size={18} color="#9a9a9a" />
+      <Ionicons name="chevron-forward" size={18} color="#9a9a9a" />
     </Pressable>
   );
 }
