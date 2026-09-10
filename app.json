@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "TTFL Store",
+    "slug": "ttfl-store",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "ttflstore",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ng.name.ttflstore.app"
+    },
+    "android": {
+      "package": "ng.name.ttflstore.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
