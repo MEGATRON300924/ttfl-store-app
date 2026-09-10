@@ -3,6 +3,7 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { api } from "./api";
+import { normalizeTTFLLink } from "./deep-links";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }),
@@ -13,16 +14,20 @@ function getNotificationUrl(notification: Notifications.Notification) {
   return typeof url === "string" && url.length > 0 ? url : null;
 }
 
+function navigateFromNotification(url: string | null) {
+  if (!url) return;
+  const route = normalizeTTFLLink(url);
+  if (route) router.push(route as never);
+}
+
 export function startNotificationNavigation() {
   const initialResponse = Notifications.getLastNotificationResponse();
-  if (initialResponse?.notification) {
-    const url = getNotificationUrl(initialResponse.notification);
-    if (url) router.push(url as never);
-  }
+  if (initialResponse?.notification) navigateFromNotification(getNotificationUrl(initialResponse.notification));
+
   const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-    const url = getNotificationUrl(response.notification);
-    if (url) router.push(url as never);
+    navigateFromNotification(getNotificationUrl(response.notification));
   });
+
   return () => subscription.remove();
 }
 
