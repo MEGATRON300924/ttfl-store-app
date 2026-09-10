@@ -3,10 +3,14 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
-import { startNotificationNavigation } from "@/lib/notifications";
+import { startNotificationNavigation, startPushTokenRotationListener } from "@/lib/notifications";
 
 export default function RootLayout() {
-  useEffect(() => startNotificationNavigation(), []);
+  useEffect(() => {
+    const stopNavigation = startNotificationNavigation();
+    const stopTokenRotation = startPushTokenRotationListener();
+    return () => { stopNavigation(); stopTokenRotation(); };
+  }, []);
 
   return (
     <AuthProvider>
