@@ -27,14 +27,14 @@ export default function CheckoutScreen() {
     if (!name.trim() || !phone.trim() || !line1.trim() || !city.trim() || !state.trim()) { setError("Complete your delivery details first."); return; }
     setBusy(true);
     try {
-      const result = await api<{ order: { orderNumber: string }; checkoutUrl: string | null }>("/api/orders/checkout", {
+      const result = await api<{ order: { orderNumber: string; paymentReference?: string | null }; checkoutUrl: string | null }>("/api/orders/checkout", {
         method: "POST", auth: true,
         body: JSON.stringify({ items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })), delivery: { name: name.trim(), phone: phone.trim(), line1: line1.trim(), ...(line2.trim() ? { line2: line2.trim() } : {}), city: city.trim(), state: state.trim(), country: country.trim() || "Nigeria" } }),
       });
       if (result.checkoutUrl) {
         await Linking.openURL(result.checkoutUrl);
         clear();
-        router.replace({ pathname: "/payment/pending", params: { orderNumber: result.order.orderNumber } });
+        router.replace({ pathname: "/payment/pending", params: { orderNumber: result.order.orderNumber, reference: result.order.paymentReference ?? "" } });
       } else {
         clear();
         router.replace({ pathname: "/orders/[orderNumber]", params: { orderNumber: result.order.orderNumber } });
