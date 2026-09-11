@@ -15,9 +15,19 @@ Native TTFL Store mobile client built with Expo, React Native and Expo Router.
 ## Development
 
 1. Copy `.env.example` to `.env`.
-2. Set `EXPO_PUBLIC_API_URL` to the deployed TTFL Store backend URL.
+2. The example file already points to the deployed TTFL Store backend; change it only when testing another backend.
 3. Run `npm install`.
 4. Run `npm start`.
+
+## Validation
+
+Run these before release:
+
+- `npm run typecheck`
+- `npm run lint`
+- `npx expo start`
+
+GitHub Actions also runs the typecheck and lint checks on pushes and pull requests.
 
 ## Deep linking
 
@@ -43,10 +53,4 @@ For the custom scheme, open a link such as `ttflstore://app/product/example-prod
 
 HTTPS App Links and Universal Links additionally require the production website association files and the final Android signing certificate / iOS application association details. Those values should be configured when the release signing credentials are finalized; they are intentionally not guessed in this repository.
 
-## Local checks
-
-- `npm run typecheck`
-- `npm run lint`
-- `npx expo start`
-
-For Android release builds, use the project's normal EAS/local Android build process after configuring the final signing credentials and production environment variables.
+For Android release builds, use the `production` EAS profile after configuring the final signing credentials and EAS project.
