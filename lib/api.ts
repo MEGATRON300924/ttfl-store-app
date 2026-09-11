@@ -1,6 +1,6 @@
 import { clearSession, getAccessToken, getRefreshToken, saveSession } from "./session";
 
-const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "https://ttfl-store-backend.onrender.com").replace(/\/$/, "");
 
 export class ApiError extends Error {
   status: number;
