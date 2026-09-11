@@ -41,9 +41,10 @@ export async function requestNotificationPermission() {
 }
 
 export async function getExpoPushToken(projectId?: string, devicePushToken?: Notifications.DevicePushToken) {
+  if (!projectId) return null;
   const granted = await requestNotificationPermission();
   if (!granted) return null;
-  const options = projectId ? { projectId, ...(devicePushToken ? { devicePushToken } : {}) } : devicePushToken ? { devicePushToken } : undefined;
+  const options = { projectId, ...(devicePushToken ? { devicePushToken } : {}) };
   const token = await Notifications.getExpoPushTokenAsync(options);
   return token.data;
 }
