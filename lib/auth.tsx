@@ -85,7 +85,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const signOut = useCallback(async () => {
     await unregisterPushDevice(pushTokenRef.current);
     pushTokenRef.current = null;
-    try { await api("/api/auth/logout", { method: "POST", skipRefresh: true }); } catch {}
     await clearSession();
     setUser(null);
   }, []);
