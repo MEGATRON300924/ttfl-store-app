@@ -25,6 +25,4 @@ jobs:
         run: npm run typecheck
 
       - name: Lint
-        env:
-          NPM_CONFIG_LEGACY_PEER_DEPS: true
         run: npm run lint
