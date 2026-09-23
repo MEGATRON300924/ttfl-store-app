@@ -11,6 +11,7 @@ type Product = {
   currency?: string; condition?: string; stock: number; status?: string; sellingMethod?: "CHECKOUT" | "EXTERNAL_LINK" | "WHATSAPP";
   location?: string | null; avgRating?: string | null; reviewCount?: number; specifications?: Record<string, string> | null;
   images?: Array<{ id: string; url: string; position: number; isPrimary: boolean }>;
+  variations?: unknown;
   category?: { name: string }; vendor?: { storeName: string; storeSlug: string; verified: boolean; location: string | null };
 };
 
@@ -27,6 +28,7 @@ export default function ProductDetailScreen() {
   const [showAddress, setShowAddress] = useState(false);
   const [address, setAddress] = useState<DeliveryAddress>(deliveryAddress ?? { name: "", phone: "", line1: "", line2: "", city: "", state: "", country: "Nigeria" });
   const [addressSaved, setAddressSaved] = useState(false);
+  const [selectedVariationKey, setSelectedVariationKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -49,7 +51,24 @@ export default function ProductDetailScreen() {
     if (deliveryAddress) setAddress(deliveryAddress);
   }, [deliveryAddress]);
 
-  const price = useMemo(() => Number(product?.price ?? 0), [product]);
+  useEffect(() => {
+    if (variations.length > 0 && !selectedVariationKey) setSelectedVariationKey(variations[0].key);
+  }, [variations, selectedVariationKey]);
+
+  const variations = useMemo(() => parseVariations(product?.variations), [product]);
+  const selectedVariation = variations.find((variation) => variation.key === selectedVariationKey) ?? variations[0];
+  const price = useMemo(() => Number(selectedVariation?.price ?? product?.price ?? 0), [product, selectedVariation]);
+  const variationGroups = useMemo(() => {
+    const groups = new Map<string, string[]>();
+    for (const variation of variations) {
+      for (const [key, value] of Object.entries(variation.options)) {
+        const values = groups.get(key) ?? [];
+        if (!values.includes(value)) values.push(value);
+        groups.set(key, values);
+      }
+    }
+    return Array.from(groups.entries());
+  }, [variations]);
   const previousPrice = Number(product?.previousPrice ?? 0);
   const image = product?.images?.slice().sort((a, b) => a.position - b.position)[0]?.url;
   const unavailable = !product || product.stock <= 0 || product.status === "OUT_OF_STOCK" || product.sellingMethod !== "CHECKOUT";
@@ -69,7 +88,7 @@ export default function ProductDetailScreen() {
 
   function addToCart() {
     if (!product || unavailable) return;
-    addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock, sellingMethod: product.sellingMethod ?? "CHECKOUT" }, quantity);
+    addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock, sellingMethod: product.sellingMethod ?? "CHECKOUT", variationKey: selectedVariation?.key ?? null, variationLabel: selectedVariation ? Object.entries(selectedVariation.options).map(([key, value]) => key + ": " + value).join(" · ") : null }, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
   }
@@ -92,6 +111,22 @@ export default function ProductDetailScreen() {
           <View style={styles.metaRow}><Text style={styles.category}>{product.category?.name ?? "Marketplace"}</Text>{product.condition && <Text style={styles.condition}>{product.condition}</Text>}</View>
           <Text style={styles.title}>{product.name}</Text>
           <Text style={styles.price}>{product.currency ?? "₦"}{price.toLocaleString()}</Text>
+          {variationGroups.map(([group, options]) => (
+            <View key={group} style={styles.variationSection}>
+              <Text style={styles.variationTitle}>{group}</Text>
+              <View style={styles.variationRow}>
+                {options.map((option) => {
+                  const matching = variations.find((variation) => variation.options[group] === option);
+                  const selected = selectedVariation?.options[group] === option;
+                  return (
+                    <Pressable key={option} onPress={() => matching && setSelectedVariationKey(matching.key)} style={[styles.variationButton, selected && styles.variationButtonSelected]}>
+                      <Text style={[styles.variationButtonText, selected && styles.variationButtonTextSelected]}>{option}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
           {previousPrice > price && <Text style={styles.previous}>{product.currency ?? "₦"}{previousPrice.toLocaleString()}</Text>}
           {product.avgRating && <View style={styles.rating}><Ionicons name="star" size={16} color="#111" /><Text style={styles.ratingText}>{product.avgRating} · {product.reviewCount ?? 0} reviews</Text></View>}
 
@@ -125,6 +160,32 @@ export default function ProductDetailScreen() {
   );
 }
 
+type ParsedVariation = { key: string; label: string; options: Record<string, string>; price?: string | number | null };
+
+function parseVariations(raw: unknown): ParsedVariation[] {
+  if (!raw) return [];
+  let value: unknown = raw;
+  if (typeof value === "string") {
+    try { value = JSON.parse(value); } catch { return []; }
+  }
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    const options: Record<string, string> = {};
+    if (row.options && typeof row.options === "object" && !Array.isArray(row.options)) {
+      for (const [key, optionValue] of Object.entries(row.options as Record<string, unknown>)) {
+        if (optionValue !== undefined && optionValue !== null) options[key] = String(optionValue);
+      }
+    } else if (row.label) {
+      options.Option = String(row.label);
+    }
+    const label = row.label ? String(row.label) : Object.values(options).join(" / ");
+    const key = row.key ? String(row.key) : label + "-" + index;
+    return [{ key, label, options, price: row.price as string | number | null | undefined }];
+  });
+}
+
 function Field({ label, value, onChangeText, placeholder, keyboardType }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; keyboardType?: "default" | "phone-pad" }) {
   return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#aaa" keyboardType={keyboardType} style={styles.input} /></View>;
 }
@@ -134,6 +195,7 @@ const styles = StyleSheet.create({
   imageShell: { height: 330, borderRadius: 26, overflow: "hidden", backgroundColor: "rgba(0,0,0,0.045)", alignItems: "center", justifyContent: "center", position: "relative" }, heroImage: { width: "100%", height: "100%" }, imageInitial: { fontSize: 72, fontWeight: "800", color: "#b5b5b5" },
   cartButton: { position: "absolute", right: 14, top: 14, width: 46, height: 46, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.9)" }, badge: { position: "absolute", right: -2, top: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#111", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 }, badgeText: { color: "#fff", fontSize: 9, fontWeight: "800" },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 20 }, category: { fontSize: 11, fontWeight: "800", letterSpacing: 1, color: "#777" }, condition: { fontSize: 10, fontWeight: "700", color: "#777", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.05)" }, title: { marginTop: 7, fontSize: 29, lineHeight: 34, fontWeight: "800", letterSpacing: -1, color: "#111" }, price: { marginTop: 11, fontSize: 24, fontWeight: "800", color: "#111" }, previous: { color: "#999", textDecorationLine: "line-through", marginTop: 2 },
+  variationSection: { marginTop: 16 }, variationTitle: { fontSize: 13, fontWeight: "800", color: "#555", marginBottom: 9 }, variationRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, variationButton: { minHeight: 42, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: "rgba(0,0,0,0.12)", backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }, variationButtonSelected: { backgroundColor: "#111", borderColor: "#111" }, variationButtonText: { color: "#222", fontSize: 13, fontWeight: "700" }, variationButtonTextSelected: { color: "#fff" },
   rating: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 9 }, ratingText: { color: "#666", fontSize: 13 }, vendorCard: { marginTop: 22, borderRadius: 20, padding: 15, flexDirection: "row", alignItems: "center" }, vendorIcon: { width: 40, height: 40, borderRadius: 13, backgroundColor: "rgba(0,0,0,0.05)", alignItems: "center", justifyContent: "center" }, vendorText: { flex: 1, marginLeft: 12 }, vendorName: { fontSize: 15, fontWeight: "800", color: "#111" }, vendorLocation: { marginTop: 3, fontSize: 12, color: "#888" },
   addressCard: { marginTop: 12, borderRadius: 20, padding: 16 }, addressHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, addressSubtitle: { marginTop: 4, color: "#777", fontSize: 12, maxWidth: 280 }, addressButton: { marginTop: 13, height: 44, borderRadius: 13, backgroundColor: "rgba(0,0,0,0.045)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }, addressButtonText: { fontSize: 13, fontWeight: "800", color: "#111" }, addressForm: { marginTop: 4 }, field: { marginTop: 13 }, fieldLabel: { fontSize: 11, fontWeight: "700", color: "#777", marginBottom: 6 }, input: { height: 50, borderRadius: 14, borderWidth: 1, borderColor: "rgba(0,0,0,0.07)", backgroundColor: "rgba(255,255,255,0.72)", paddingHorizontal: 14, color: "#111", fontSize: 14 }, row: { flexDirection: "row", gap: 10 }, half: { flex: 1 }, saveAddress: { height: 48, borderRadius: 14, backgroundColor: "#111", alignItems: "center", justifyContent: "center", marginTop: 16 }, saveAddressText: { color: "#fff", fontWeight: "800" },
   infoCard: { marginTop: 12, borderRadius: 20, padding: 18 }, sectionTitle: { fontSize: 17, fontWeight: "800", color: "#111" }, description: { marginTop: 8, fontSize: 14, lineHeight: 21, color: "#666" }, specs: { marginTop: 15, borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.06)" }, specRow: { flexDirection: "row", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.05)" }, specKey: { flex: 1, color: "#888", fontSize: 12 }, specValue: { flex: 1, color: "#222", fontSize: 12, textAlign: "right", fontWeight: "600" },
