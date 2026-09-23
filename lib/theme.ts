@@ -1,0 +1,2 @@
+export const theme={colors:{graphite950:"#12141A",graphite900:"#1A1D24",graphite800:"#252932",graphite600:"#5B6472",graphite300:"#B8BEC8",graphite200:"#D6DAE1",cloud50:"#FBFBFC",cloud100:"#F5F6F8",ember600:"#E8622C",ember700:"#B94A1F",green600:"#1F9D63",gold600:"#B98A1F",white:"#FFFFFF"},radius:{card:16,button:10,image:14}};
+export const money=(value:number|string,currency="₦")=>`${currency}${Number(value||0).toLocaleString("en-NG")}`;
