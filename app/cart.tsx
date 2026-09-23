@@ -26,7 +26,7 @@ export default function CartScreen() {
             {items.map((item) => (
               <GlassCard key={item.productId} style={styles.itemCard} intensity={24}>
                 <View style={styles.itemRow}>
-                  <View style={styles.imageBox}>{item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" /> : <Text style={styles.initial}>{item.name[0]?.toUpperCase()}</Text>}</View>
+                  <View style={styles.imageBox}>{item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={{width:"100%",height:"100%"}} resizeMode="cover" /> : <Text style={styles.initial}>{item.name[0]?.toUpperCase()}</Text>}</View>
                   <View style={styles.itemInfo}><Text style={styles.itemName} numberOfLines={2}>{item.name}</Text><Text style={styles.itemPrice}>{item.currency}{item.price.toLocaleString()}</Text><Text style={styles.stock}>{item.stock} available</Text></View>
                   <Pressable onPress={() => removeItem(item.productId)} hitSlop={8}><Ionicons name="trash-outline" size={19} color="#999" /></Pressable>
                 </View>
