@@ -11,6 +11,8 @@ export type CartItem = {
   quantity: number;
   stock: number;
   sellingMethod: "CHECKOUT" | "EXTERNAL_LINK" | "WHATSAPP";
+  variationKey?: string | null;
+  variationLabel?: string | null;
 };
 
 export type DeliveryAddress = {
@@ -30,8 +32,8 @@ type CartContextValue = {
   hydrated: boolean;
   deliveryAddress: DeliveryAddress | null;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number, variationKey?: string | null) => void;
+  removeItem: (productId: string, variationKey?: string | null) => void;
   setDeliveryAddress: (address: DeliveryAddress) => void;
   clearDeliveryAddress: () => void;
   clear: () => void;
@@ -87,7 +89,7 @@ export function CartProvider({ children }: PropsWithChildren) {
     deliveryAddress,
     addItem: (item, quantity = 1) => {
       setItems((current) => {
-        const existing = current.find((entry) => entry.productId === item.productId);
+        const existing = current.find((entry) => entry.productId === item.productId && (entry.variationKey ?? null) === (item.variationKey ?? null));
         if (!existing) return [...current, { ...item, quantity: Math.min(quantity, Math.max(1, item.stock)) }];
         const max = Math.max(1, existing.stock);
         return current.map((entry) => entry.productId === item.productId
@@ -95,14 +97,14 @@ export function CartProvider({ children }: PropsWithChildren) {
           : entry);
       });
     },
-    updateQuantity: (productId, quantity) => {
+    updateQuantity: (productId, quantity, variationKey = null) => {
       setItems((current) => current.flatMap((item) => {
-        if (item.productId !== productId) return [item];
+        if (item.productId !== productId || (item.variationKey ?? null) !== variationKey) return [item];
         if (quantity <= 0) return [];
         return [{ ...item, quantity: Math.min(quantity, Math.max(1, item.stock)) }];
       }));
     },
-    removeItem: (productId) => setItems((current) => current.filter((item) => item.productId !== productId)),
+    removeItem: (productId, variationKey = null) => setItems((current) => current.filter((item) => item.productId !== productId || (item.variationKey ?? null) !== variationKey)),
     setDeliveryAddress: (address) => setDeliveryAddressState(address),
     clearDeliveryAddress: () => setDeliveryAddressState(null),
     clear: () => setItems([]),
