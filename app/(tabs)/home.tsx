@@ -1,88 +1,45 @@
-import { Link } from "expo-router";
-import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { GlassCard } from "@/components/GlassCard";
+import { router } from "expo-router";
+import { useCallback,useEffect,useState } from "react";
+import { ActivityIndicator,Image,Pressable,RefreshControl,ScrollView,StyleSheet,Text,View } from "react-native";
+import { ProductCard,MobileProduct } from "@/components/ProductCard";
+import { StoreCard,MobileStore } from "@/components/StoreCard";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
+import { api } from "@/lib/api";
+import { theme } from "@/lib/theme";
 
-export default function HomeScreen() {
-  const { user } = useAuth();
-  const firstName = user?.firstName?.trim() || "there";
-
-  return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.eyebrow}>TTFL STORE</Text>
-          <Text style={styles.title}>Hey, {firstName} 👋</Text>
-        </View>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{firstName[0]?.toUpperCase() ?? "T"}</Text></View>
-      </View>
-
-      <Link href="/(tabs)/explore" asChild>
-        <Pressable style={styles.search}>
-          <Ionicons name="search-outline" size={20} color="#6b7280" />
-          <Text style={styles.searchText}>Search products, stores and more</Text>
-        </Pressable>
-      </Link>
-
-      <GlassCard dark style={styles.hero} intensity={28}>
-        <View style={styles.heroGlow} />
-        <Text style={styles.heroEyebrow}>SHOP TTFL</Text>
-        <Text style={styles.heroTitle}>Find what you need.</Text>
-        <Text style={styles.heroCopy}>Discover products from stores across the TTFL marketplace.</Text>
-        <Link href="/(tabs)/explore" asChild>
-          <Pressable style={styles.heroButton}>
-            <Text style={styles.heroButtonText}>Explore marketplace</Text>
-            <Ionicons name="arrow-forward" size={17} color="#111" />
-          </Pressable>
-        </Link>
-      </GlassCard>
-
-      <Text style={styles.sectionTitle}>Quick access</Text>
-      <View style={styles.grid}>
-        <Quick title="Orders" icon="receipt-outline" href="/(tabs)/orders" />
-        <Quick title="Explore" icon="search-outline" href="/(tabs)/explore" />
-        <Quick title="Account" icon="person-outline" href="/(tabs)/account" />
-      </View>
-
-      <Text style={styles.sectionTitle}>Your marketplace</Text>
-      <GlassCard style={styles.infoCard} intensity={22}>
-        <View style={styles.infoIcon}><Ionicons name="sparkles-outline" size={20} color="#111" /></View>
-        <Text style={styles.cardTitle}>Built around the TTFL Store</Text>
-        <Text style={styles.cardCopy}>Products, vendors, wishlist, checkout, payments and real-time tracking will use the same TTFL backend as the web store.</Text>
-      </GlassCard>
-    </ScrollView>
-  );
+type Category={id:string;name:string;slug:string;icon?:string|null};
+type HomeData={flash:MobileProduct[];featured:MobileProduct[];trending:MobileProduct[];newest:MobileProduct[];coming:MobileProduct[];stores:MobileStore[];categories:Category[]};
+const empty:HomeData={flash:[],featured:[],trending:[],newest:[],coming:[],stores:[],categories:[]};
+function mapProduct(p:any):MobileProduct{return{id:p.id,slug:p.slug,name:p.name,price:p.price,previousPrice:p.previousPrice,imageUrl:p.imageUrl??p.images?.[0]?.url,images:p.images,vendor:p.vendor?.storeName,vendorSlug:p.vendor?.storeSlug,verified:p.vendor?.verified,rating:p.avgRating,reviewCount:p.reviewCount,currency:p.currency??"₦",comingSoon:Boolean(p.comingSoon)}}
+export default function HomeScreen(){
+ const {user}=useAuth(); const {totalItems}=useCart(); const [data,setData]=useState(empty); const [loading,setLoading]=useState(true); const [refreshing,setRefreshing]=useState(false);
+ const firstName=user?.firstName?.trim()||"there";
+ const load=useCallback(async(refresh=false)=>{refresh?setRefreshing(true):setLoading(true);try{const [flash,featured,trending,newest,cats,stores]=await Promise.allSettled([
+ api<any>("/api/flash-deals"),api<any>("/api/featured/products?placement=HOMEPAGE&limit=10"),api<any>("/api/products?sort=relevance&limit=12"),api<any>("/api/products?sort=newest&limit=12"),api<any>("/api/categories"),api<any>("/api/store-profile/public/directory?verified=true&limit=8&page=1")
+ ]);const val=(r:any)=>r.status==="fulfilled"?r.value:null;const fp=val(flash)?.deals??[];const fep=val(featured)?.items??[];const tp=val(trending)?.items??[];const np=val(newest)?.items??[];const cp=val(cats)?.categories??val(cats)?.items??(Array.isArray(val(cats))?val(cats):[]);const sp=val(stores)?.stores??[];setData({flash:fp.map((p:any)=>mapProduct({...p,price:p.salePrice,previousPrice:p.price,productId:undefined})),featured:fep.map((x:any)=>mapProduct(x.product??x)),trending:tp.filter((p:any)=>!p.comingSoon).map(mapProduct),newest:np.filter((p:any)=>!p.comingSoon).map(mapProduct),coming:np.filter((p:any)=>p.comingSoon).map(mapProduct),categories:cp,stores:sp.map((s:any)=>({id:s.id,name:s.name??s.storeName,slug:s.slug??s.storeSlug,logoUrl:s.logoUrl,location:s.location,rating:s.rating,productCount:s.productCount,verified:s.verified}))});}finally{setLoading(false);setRefreshing(false)}},[]);
+ useEffect(()=>{load()},[load]);
+ return <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>load(true)} />}>
+  <View style={styles.utility}><Text style={styles.utilityText}>Deliver to Nigeria</Text><View style={styles.utilityLinks}><Text style={styles.utilityText}>Sell on TTFL Store</Text><Text style={styles.utilityText}>Support</Text></View></View>
+  <View style={styles.header}><Pressable onPress={()=>router.push("/account/profile")} style={styles.logo}><Text style={styles.logoText}>TTFL</Text><Text style={styles.logoSub}>STORE</Text></Pressable><View style={styles.headerActions}><Pressable onPress={()=>router.push("/notifications")} style={styles.iconButton}><Ionicons name="notifications-outline" size={21} color={theme.colors.graphite950}/><View style={styles.dot}/></Pressable><Pressable onPress={()=>router.push("/cart")} style={styles.iconButton}><Ionicons name="cart-outline" size={21} color={theme.colors.graphite950}/>{totalItems>0&&<View style={styles.badge}><Text style={styles.badgeText}>{totalItems>9?"9+":totalItems}</Text></View>}</Pressable></View></View>
+  <Pressable onPress={()=>router.push("/(tabs)/explore")} style={styles.search}><Ionicons name="search-outline" size={19} color={theme.colors.graphite600}/><Text style={styles.searchText}>Search products, stores and more</Text></Pressable>
+  <View style={styles.greeting}><View><Text style={styles.kicker}>TTFL STORE</Text><Text style={styles.title}>Hey, {firstName} 👋</Text><Text style={styles.subtitle}>Shop products from independent stores across the marketplace.</Text></View></View>
+  <View style={styles.hero}><View style={styles.heroCopy}><Text style={styles.heroKicker}>THE MARKETPLACE</Text><Text style={styles.heroTitle}>Shop local. Discover more.</Text><Text style={styles.heroText}>Find products, trusted stores and fresh deals on TTFL Store.</Text><Pressable onPress={()=>router.push("/(tabs)/explore")} style={styles.heroButton}><Text style={styles.heroButtonText}>Shop now</Text><Ionicons name="arrow-forward" size={16} color="#fff"/></Pressable></View><View style={styles.heroMark}><Text style={styles.heroMarkText}>TTFL</Text></View></View>
+  {loading?<View style={styles.loading}><ActivityIndicator color={theme.colors.ember600}/></View>:<>
+   {data.categories.length>0&&<SectionTitle title="Shop by category" action="See all" onPress={()=>router.push("/categories")}/>}
+   {data.categories.length>0&&<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>{data.categories.slice(0,10).map(c=><Pressable key={c.id} onPress={()=>router.push({pathname:"/(tabs)/explore",params:{category:c.slug}})} style={styles.category}><View style={styles.categoryIcon}><Text style={styles.categoryEmoji}>{c.icon||"▦"}</Text></View><Text numberOfLines={2} style={styles.categoryName}>{c.name}</Text></Pressable>)}</ScrollView>}
+   <ProductSection title="Flash deals" subtitle="Prices drop for a limited time" items={data.flash}/>
+   <ProductSection title="Coming Soon" subtitle="Preview what's about to launch" items={data.coming}/>
+   <ProductSection title="Just Came In" subtitle="Products that just launched" items={data.newest}/>
+   <ProductSection title="Featured products" subtitle="Hand-picked by TTFL Store" items={data.featured}/>
+   {data.stores.length>0&&<View style={styles.section}><SectionTitle title="Trusted stores" action="See all" onPress={()=>router.push("/stores")}/><Text style={styles.sectionSubtitle}>Verified stores you can shop with confidence.</Text>{data.stores.slice(0,4).map(s=><StoreCard key={s.id} store={s}/>)}</View>}
+   <View style={styles.vendorSpot}><View style={styles.spotIcon}><Ionicons name="shield-checkmark" size={20} color="#fff"/></View><View style={styles.spotCopy}><Text style={styles.spotKicker}>VENDOR SPOTLIGHT</Text><Text style={styles.spotTitle}>Get verified. Get discovered. Grow your sales.</Text><Text style={styles.spotText}>Put your store in front of more serious buyers.</Text></View><Pressable onPress={()=>router.push("/sell")} style={styles.spotButton}><Text style={styles.spotButtonText}>Start selling</Text></Pressable></View>
+   <ProductSection title="Trending now" subtitle="What buyers are viewing most" items={data.trending}/>
+  </>}
+  <View style={{height:120}}/>
+ </ScrollView>
 }
-
-function Quick({ title, icon, href }: { title: string; icon: keyof typeof Ionicons.glyphMap; href: "/(tabs)/orders" | "/(tabs)/explore" | "/(tabs)/account" }) {
-  return <Link href={href} asChild><Pressable style={styles.quick}><View style={styles.quickIcon}><Ionicons name={icon} size={19} color="#111" /></View><Text style={styles.quickTitle}>{title}</Text><Ionicons name="chevron-forward" size={18} color="#9ca3af" /></Pressable></Link>;
-}
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f7f7f8" },
-  content: { paddingHorizontal: 20, paddingTop: 58, paddingBottom: 34 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
-  eyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 1.4, color: "#9ca3af" },
-  title: { fontSize: 28, fontWeight: "800", color: "#111", letterSpacing: -0.8, marginTop: 4 },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#111", alignItems: "center", justifyContent: "center", shadowColor: "#111", shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
-  avatarText: { color: "#fff", fontWeight: "800", fontSize: 16 },
-  search: { height: 54, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.86)", borderWidth: 1, borderColor: "#e9e9eb", flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginBottom: 18 },
-  searchText: { color: "#9ca3af", fontSize: 15, marginLeft: 10 },
-  hero: { minHeight: 238, borderRadius: 26, padding: 24, marginBottom: 28 },
-  heroGlow: { position: "absolute", width: 170, height: 170, borderRadius: 85, right: -55, top: -70, backgroundColor: "rgba(255,255,255,0.10)" },
-  heroEyebrow: { color: "#a3a3a3", fontSize: 11, fontWeight: "800", letterSpacing: 1.2 },
-  heroTitle: { color: "#fff", fontSize: 30, fontWeight: "800", letterSpacing: -1, marginTop: 8 },
-  heroCopy: { color: "#c4c4c4", fontSize: 15, lineHeight: 22, marginTop: 8, maxWidth: 300 },
-  heroButton: { backgroundColor: "rgba(255,255,255,0.94)", paddingHorizontal: 16, height: 44, borderRadius: 13, flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", marginTop: 20 },
-  heroButtonText: { color: "#111", fontWeight: "700" },
-  sectionTitle: { fontSize: 19, fontWeight: "800", color: "#111", marginBottom: 12 },
-  grid: { gap: 10, marginBottom: 26 },
-  quick: { height: 62, borderWidth: 1, borderColor: "rgba(225,225,228,0.9)", backgroundColor: "rgba(255,255,255,0.76)", borderRadius: 17, paddingHorizontal: 12, flexDirection: "row", alignItems: "center" },
-  quickIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: "#f1f1f2", alignItems: "center", justifyContent: "center", marginRight: 12 },
-  quickTitle: { flex: 1, fontWeight: "700", color: "#111", fontSize: 15 },
-  infoCard: { borderRadius: 21, padding: 18 },
-  infoIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.85)", alignItems: "center", justifyContent: "center", marginBottom: 12 },
-  cardTitle: { fontSize: 16, fontWeight: "800", color: "#111" },
-  cardCopy: { color: "#6b7280", lineHeight: 21, marginTop: 6, fontSize: 14 },
-});
+function SectionTitle({title,action,onPress}:{title:string;action?:string;onPress?:()=>void}){return <View style={styles.sectionTitleRow}><Text style={styles.sectionTitle}>{title}</Text>{action&&<Pressable onPress={onPress}><Text style={styles.action}>{action}</Text></Pressable>}</View>}
+function ProductSection({title,subtitle,items}:{title:string;subtitle:string;items:MobileProduct[]}){if(!items.length)return null;return <View style={styles.section}><SectionTitle title={title}/><Text style={styles.sectionSubtitle}>{subtitle}</Text><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.productRow}>{items.slice(0,10).map(p=><View key={p.id} style={styles.productItem}><ProductCard product={p}/></View>)}</ScrollView></View>}
+const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},content:{paddingBottom:30},utility:{height:34,backgroundColor:theme.colors.graphite950,paddingHorizontal:18,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},utilityLinks:{flexDirection:"row",gap:15},utilityText:{fontSize:10,color:"#D6DAE1"},header:{height:66,paddingHorizontal:18,backgroundColor:"#fff",borderBottomWidth:1,borderBottomColor:theme.colors.graphite200,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},logo:{flexDirection:"row",alignItems:"baseline",gap:4},logoText:{fontSize:24,fontWeight:"950",letterSpacing:-1.5,color:theme.colors.graphite950},logoSub:{fontSize:10,fontWeight:"900",letterSpacing:1.5,color:theme.colors.ember600},headerActions:{flexDirection:"row",gap:5},iconButton:{width:42,height:42,borderRadius:12,alignItems:"center",justifyContent:"center",position:"relative"},dot:{position:"absolute",right:9,top:8,width:6,height:6,borderRadius:3,backgroundColor:theme.colors.ember600},badge:{position:"absolute",right:2,top:3,minWidth:17,height:17,borderRadius:9,backgroundColor:theme.colors.ember600,alignItems:"center",justifyContent:"center",paddingHorizontal:4},badgeText:{color:"#fff",fontSize:9,fontWeight:"900"},search:{height:48,marginHorizontal:18,marginTop:12,borderRadius:10,borderWidth:1,borderColor:theme.colors.graphite200,backgroundColor:"#fff",flexDirection:"row",alignItems:"center",paddingHorizontal:14},searchText:{marginLeft:9,color:theme.colors.graphite600,fontSize:13},greeting:{paddingHorizontal:18,paddingTop:22},kicker:{fontSize:10,fontWeight:"900",letterSpacing:1.5,color:theme.colors.ember600},title:{fontSize:28,fontWeight:"900",letterSpacing:-1,color:theme.colors.graphite950,marginTop:4},subtitle:{fontSize:13,lineHeight:19,color:theme.colors.graphite600,marginTop:6,maxWidth:340},hero:{marginHorizontal:18,marginTop:18,minHeight:190,borderRadius:16,backgroundColor:theme.colors.graphite950,padding:20,overflow:"hidden",flexDirection:"row"},heroCopy:{flex:1,zIndex:2},heroKicker:{fontSize:9,fontWeight:"900",letterSpacing:1.6,color:"#B8BEC8"},heroTitle:{fontSize:25,fontWeight:"900",letterSpacing:-.8,color:"#fff",marginTop:7,maxWidth:230},heroText:{fontSize:12.5,lineHeight:18,color:"#D6DAE1",marginTop:8,maxWidth:260},heroButton:{height:40,paddingHorizontal:14,borderRadius:10,backgroundColor:theme.colors.ember600,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:7,alignSelf:"flex-start",marginTop:16},heroButtonText:{color:"#fff",fontSize:13,fontWeight:"900"},heroMark:{position:"absolute",right:-28,bottom:-28,width:160,height:160,borderRadius:80,borderWidth:24,borderColor:"rgba(232,98,44,.18)",alignItems:"center",justifyContent:"center"},heroMarkText:{color:"rgba(255,255,255,.13)",fontSize:36,fontWeight:"950",letterSpacing:-2},loading:{height:180,alignItems:"center",justifyContent:"center"},section:{marginTop:26},sectionTitleRow:{paddingHorizontal:18,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},sectionTitle:{fontSize:18,fontWeight:"900",color:theme.colors.graphite950,letterSpacing:-.3},action:{fontSize:12,fontWeight:"800",color:theme.colors.ember600},sectionSubtitle:{paddingHorizontal:18,fontSize:11.5,color:theme.colors.graphite600,marginTop:4,marginBottom:12},categoryRow:{paddingHorizontal:18,gap:10},category:{width:72,alignItems:"center"},categoryIcon:{width:54,height:54,borderRadius:27,backgroundColor:"#fff",borderWidth:1,borderColor:theme.colors.graphite200,alignItems:"center",justifyContent:"center"},categoryEmoji:{fontSize:21,color:theme.colors.graphite600},categoryName:{fontSize:10,textAlign:"center",color:theme.colors.graphite950,fontWeight:"700",marginTop:7},productRow:{paddingHorizontal:18,gap:10},productItem:{width:160},vendorSpot:{marginHorizontal:18,marginTop:28,borderWidth:1,borderColor:"rgba(185,138,31,.35)",backgroundColor:"#FFF9EC",borderRadius:16,padding:16,flexDirection:"row",alignItems:"center",gap:10},spotIcon:{width:40,height:40,borderRadius:20,backgroundColor:theme.colors.gold600,alignItems:"center",justifyContent:"center"},spotCopy:{flex:1},spotKicker:{fontSize:8,fontWeight:"900",letterSpacing:1.3,color:theme.colors.ember700},spotTitle:{fontSize:14,fontWeight:"900",color:theme.colors.graphite950,marginTop:3},spotText:{fontSize:10.5,color:theme.colors.graphite600,marginTop:3},spotButton:{marginTop:10,backgroundColor:theme.colors.ember600,borderRadius:9,paddingHorizontal:11,paddingVertical:9},spotButtonText:{color:"#fff",fontSize:10,fontWeight:"900"}});
