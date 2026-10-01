@@ -13,6 +13,8 @@ export type User = {
   status?: string;
   emailVerified?: boolean;
   avatarUrl?: string | null;
+  termsAcceptedVersion?: string | null;
+  termsAcceptedAt?: string | null;
 };
 
 type AuthContextValue = {
