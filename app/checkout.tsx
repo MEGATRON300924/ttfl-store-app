@@ -17,6 +17,7 @@ export default function CheckoutScreen() {
   const [line2, setLine2] = useState(deliveryAddress?.line2 ?? "");
   const [city, setCity] = useState(deliveryAddress?.city ?? "");
   const [state, setState] = useState(deliveryAddress?.state ?? "");
+  const [digitalPostcode, setDigitalPostcode] = useState(deliveryAddress?.digitalPostcode ?? "");
   const [country, setCountry] = useState(deliveryAddress?.country ?? "Nigeria");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -29,6 +30,7 @@ export default function CheckoutScreen() {
     setLine2(deliveryAddress.line2 ?? "");
     setCity(deliveryAddress.city);
     setState(deliveryAddress.state);
+    setDigitalPostcode(deliveryAddress.digitalPostcode ?? "");
     setCountry(deliveryAddress.country);
   }, [deliveryAddress]);
 
@@ -38,7 +40,7 @@ export default function CheckoutScreen() {
     setDeliveryAddress({
       name: name.trim(), phone: phone.trim(), line1: line1.trim(),
       ...(line2.trim() ? { line2: line2.trim() } : {}),
-      city: city.trim(), state: state.trim(), country: country.trim() || "Nigeria",
+      city: city.trim(), state: state.trim(), ...(digitalPostcode.trim() ? { digitalPostcode: digitalPostcode.trim() } : {}), country: country.trim() || "Nigeria",
     });
   }
 
@@ -51,7 +53,7 @@ export default function CheckoutScreen() {
     try {
       const result = await api<{ order: { orderNumber: string; paymentReference?: string | null }; checkoutUrl: string | null }>("/api/orders/checkout", {
         method: "POST", auth: true,
-        body: JSON.stringify({ items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })), delivery: { name: name.trim(), phone: phone.trim(), line1: line1.trim(), ...(line2.trim() ? { line2: line2.trim() } : {}), city: city.trim(), state: state.trim(), country: country.trim() || "Nigeria" } }),
+        body: JSON.stringify({ items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })), delivery: { name: name.trim(), phone: phone.trim(), line1: line1.trim(), ...(line2.trim() ? { line2: line2.trim() } : {}), city: city.trim(), state: state.trim(), ...(digitalPostcode.trim() ? { digitalPostcode: digitalPostcode.trim() } : {}), country: country.trim() || "Nigeria" } }),
       });
       if (result.checkoutUrl) {
         await Linking.openURL(result.checkoutUrl);
@@ -67,7 +69,7 @@ export default function CheckoutScreen() {
   function addAnotherAddress() {
     setName(user ? `${user.firstName} ${user.lastName}`.trim() : "");
     setPhone(user?.phone ?? "");
-    setLine1(""); setLine2(""); setCity(""); setState(""); setCountry("Nigeria");
+    setLine1(""); setLine2(""); setCity(""); setState(""); setDigitalPostcode(""); setCountry("Nigeria");
     setError("");
   }
 
@@ -77,7 +79,7 @@ export default function CheckoutScreen() {
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         <Text style={styles.eyebrow}>TTFL STORE</Text><Text style={styles.title}>Checkout</Text><Text style={styles.subtitle}>Where should we deliver your order?</Text>
         {deliveryAddress && addressComplete && <GlassCard style={styles.savedCard} intensity={22}><View style={styles.savedHeader}><View style={styles.savedIcon}><Ionicons name="location" size={18} color="#111" /></View><View style={styles.savedText}><Text style={styles.savedTitle}>Delivery address</Text><Text style={styles.savedAddress}>{deliveryAddress.line1}, {deliveryAddress.city}, {deliveryAddress.state}</Text></View><Ionicons name="checkmark-circle" size={20} color="#111" /></View><Pressable onPress={addAnotherAddress} style={styles.anotherButton}><Ionicons name="add" size={17} color="#111" /><Text style={styles.anotherText}>Add another address</Text></Pressable></GlassCard>}
-        <GlassCard style={styles.card} intensity={24}><Text style={styles.section}>{deliveryAddress && addressComplete ? "Selected address" : "Delivery details"}</Text><Field label="Full name" value={name} onChangeText={setName} placeholder="Your full name" /><Field label="Phone number" value={phone} onChangeText={setPhone} placeholder="080..." keyboardType="phone-pad" /><Field label="Address" value={line1} onChangeText={setLine1} placeholder="Street address" /><Field label="Apartment / landmark (optional)" value={line2} onChangeText={setLine2} placeholder="Optional" optional /><View style={styles.row}><View style={styles.half}><Field label="City" value={city} onChangeText={setCity} placeholder="City" /></View><View style={styles.half}><Field label="State" value={state} onChangeText={setState} placeholder="State" /></View></View><Field label="Country" value={country} onChangeText={setCountry} placeholder="Country" /></GlassCard>
+        <GlassCard style={styles.card} intensity={24}><Text style={styles.section}>{deliveryAddress && addressComplete ? "Selected address" : "Delivery details"}</Text><Field label="Full name" value={name} onChangeText={setName} placeholder="Your full name" /><Field label="Phone number" value={phone} onChangeText={setPhone} placeholder="080..." keyboardType="phone-pad" /><Field label="Address" value={line1} onChangeText={setLine1} placeholder="Street address" /><Field label="Apartment / landmark (optional)" value={line2} onChangeText={setLine2} placeholder="Optional" optional /><View style={styles.row}><View style={styles.half}><Field label="City" value={city} onChangeText={setCity} placeholder="City" /></View><View style={styles.half}><Field label="State" value={state} onChangeText={setState} placeholder="State" /></View></View><Field label="Digital Postcode (optional)" value={digitalPostcode} onChangeText={setDigitalPostcode} placeholder="e.g. FC 02 A09 DB 09" /><Field label="Country" value={country} onChangeText={setCountry} placeholder="Country" /></GlassCard>
         {!!error && <Text style={styles.error}>{error}</Text>}
         <GlassCard dark style={styles.summary} intensity={26}><Text style={styles.summaryEyebrow}>ORDER TOTAL</Text><View style={styles.totalRow}><Text style={styles.totalLabel}>Subtotal</Text><Text style={styles.totalValue}>₦{subtotal.toLocaleString()}</Text></View><Text style={styles.note}>Final delivery charges, if applicable, are handled by the TTFL checkout flow.</Text><Pressable disabled={busy} onPress={submit} style={({ pressed }) => [styles.payButton, pressed && styles.pressed, busy && styles.disabled]}>{busy ? <ActivityIndicator color="#111" /> : <><Text style={styles.payText}>Continue to payment</Text><Ionicons name="arrow-forward" size={18} color="#111" /></>}</Pressable></GlassCard>
       </ScrollView>
