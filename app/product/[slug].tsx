@@ -51,11 +51,11 @@ export default function ProductDetailScreen() {
     if (deliveryAddress) setAddress(deliveryAddress);
   }, [deliveryAddress]);
 
+  const variations = useMemo(() => parseVariations(product?.variations), [product]);
+
   useEffect(() => {
     if (variations.length > 0 && !selectedVariationKey) setSelectedVariationKey(variations[0].key);
   }, [variations, selectedVariationKey]);
-
-  const variations = useMemo(() => parseVariations(product?.variations), [product]);
   const selectedVariation = variations.find((variation) => variation.key === selectedVariationKey) ?? variations[0];
   const price = useMemo(() => Number(selectedVariation?.price ?? product?.price ?? 0), [product, selectedVariation]);
   const variationGroups = useMemo(() => {
