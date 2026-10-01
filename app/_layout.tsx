@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { startNotificationNavigation, startPushTokenRotationListener } from "@/lib/notifications";
+import { TermsGate } from "@/components/TermsGate";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <CartProvider>
+        <TermsGate />
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }} />
       </CartProvider>
