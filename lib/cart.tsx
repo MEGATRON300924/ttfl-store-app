@@ -22,6 +22,7 @@ export type DeliveryAddress = {
   line2?: string;
   city: string;
   state: string;
+  digitalPostcode?: string;
   country: string;
 };
 
