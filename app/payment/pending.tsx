@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { theme } from "@/lib/theme";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
@@ -49,7 +50,7 @@ export default function PaymentPendingScreen() {
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: true, title: "Payment" }} />
       <GlassCard style={styles.card} intensity={28}>
-        <View style={[styles.icon, paid && styles.successIcon, failed && styles.failedIcon]}><Ionicons name={paid ? "checkmark" : failed ? "close" : "card-outline"} size={30} color="#111" /></View>
+        <View style={[styles.icon, paid && styles.successIcon, failed && styles.failedIcon]}><Ionicons name={paid ? "checkmark" : failed ? "close" : "card-outline"} size={30} color=theme.colors.graphite950 /></View>
         <Text style={styles.title}>{paid ? "Payment confirmed" : failed ? "Payment not completed" : "Payment started"}</Text>
         <Text style={styles.copy}>{paid ? "Your payment has been confirmed and your TTFL order is now moving through the normal order and tracking flow." : failed ? "The payment was not completed. Your cart is still available so you can try again if the order is still awaiting payment." : "Your payment page has opened. TTFL is checking for confirmation automatically, so you do not need to keep refreshing."}</Text>
         <Text style={styles.order}>Order {orderNumber}</Text>
@@ -62,5 +63,5 @@ export default function PaymentPendingScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f7f7f7", padding: 18, justifyContent: "center" }, card: { borderRadius: 25, padding: 24, alignItems: "center" }, icon: { width: 62, height: 62, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.05)", alignItems: "center", justifyContent: "center" }, successIcon: { backgroundColor: "rgba(16,185,129,0.14)" }, failedIcon: { backgroundColor: "rgba(180,35,24,0.10)" }, title: { marginTop: 17, fontSize: 25, fontWeight: "800", color: "#111", textAlign: "center" }, copy: { marginTop: 8, maxWidth: 320, textAlign: "center", fontSize: 14, lineHeight: 21, color: "#707070" }, order: { marginTop: 14, fontWeight: "800", color: "#111" }, checking: { marginTop: 14, flexDirection: "row", alignItems: "center", gap: 8 }, checkingText: { fontSize: 12, color: "#777" }, button: { width: "100%", height: 52, borderRadius: 15, backgroundColor: "#111", marginTop: 20, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, buttonText: { color: "#fff", fontWeight: "800" }, home: { marginTop: 17, color: "#777", fontWeight: "700" }
+  screen: { flex: 1, backgroundColor: theme.colors.cloud50, padding: 18, justifyContent: "center" }, card: { borderRadius: theme.radius.card, padding: 24, alignItems: "center" }, icon: { width: 62, height: 62, borderRadius: theme.radius.card, backgroundColor: "rgba(0,0,0,0.05)", alignItems: "center", justifyContent: "center" }, successIcon: { backgroundColor: "rgba(16,185,129,0.14)" }, failedIcon: { backgroundColor: "rgba(180,35,24,0.10)" }, title: { marginTop: 17, fontSize: 25, fontWeight: "800", color: theme.colors.graphite950, textAlign: "center" }, copy: { marginTop: 8, maxWidth: 320, textAlign: "center", fontSize: 14, lineHeight: 21, color: theme.colors.graphite600 }, order: { marginTop: 14, fontWeight: "800", color: theme.colors.graphite950 }, checking: { marginTop: 14, flexDirection: "row", alignItems: "center", gap: 8 }, checkingText: { fontSize: 12, color: theme.colors.graphite600 }, button: { width: "100%", height: 52, borderRadius: theme.radius.card, backgroundColor: theme.colors.graphite950, marginTop: 20, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, buttonText: { color: "#fff", fontWeight: "800" }, home: { marginTop: 17, color: theme.colors.graphite600, fontWeight: "700" }
 });
