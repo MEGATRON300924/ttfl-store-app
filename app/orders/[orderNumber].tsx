@@ -41,7 +41,7 @@ export default function OrderDetailScreen() {
   if (error || !order) {
     return (
       <View style={styles.center}>
-        <Ionicons name="alert-circle-outline" size={28} color=theme.colors.ember700 />
+        <Ionicons name="alert-circle-outline" size={28} color={theme.colors.ember700} />
         <Text style={styles.error}>{error || "Order not found."}</Text>
         <Pressable style={styles.retry} onPress={() => router.back()}><Text style={styles.retryText}>Go back</Text></Pressable>
       </View>
@@ -82,7 +82,7 @@ export default function OrderDetailScreen() {
             <GlassCard style={styles.card} intensity={22}>
               {vendors.map((vendor, index) => (
                 <View key={vendor.id} style={[styles.vendor, index < vendors.length - 1 && styles.vendorBorder]}>
-                  <View style={styles.vendorIcon}><Ionicons name="storefront-outline" size={18} color=theme.colors.graphite950 /></View>
+                  <View style={styles.vendorIcon}><Ionicons name="storefront-outline" size={18} color={theme.colors.graphite950} /></View>
                   <View style={styles.vendorCopy}>
                     <Text style={styles.vendorName}>{vendor.vendor?.name ?? "TTFL vendor"}</Text>
                     <Text style={styles.vendorStatus}>{formatStatus(vendor.status)}</Text>
@@ -98,7 +98,7 @@ export default function OrderDetailScreen() {
             <Text style={styles.section}>DELIVERY</Text>
             <GlassCard style={styles.card} intensity={22}>
               <View style={styles.addressHeader}>
-                <Ionicons name="location-outline" size={18} color=theme.colors.graphite950 />
+                <Ionicons name="location-outline" size={18} color={theme.colors.graphite950} />
                 <Text style={styles.addressTitle}>{address.name || "Delivery address"}</Text>
               </View>
               {address.phone && <Text style={styles.addressLine}>{address.phone}</Text>}
