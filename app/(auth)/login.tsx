@@ -1,115 +1,52 @@
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { GlassCard } from "@/components/GlassCard";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { theme } from "@/lib/theme";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
 
-  async function submit() {
+  async function submit(){
     setError("");
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (!normalizedEmail || !password) {
-      setError("Enter your email and password.");
-      return;
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
-      setError("Enter a valid email address.");
-      return;
-    }
-
+    const normalizedEmail=email.trim().toLowerCase();
+    if(!normalizedEmail||!password) return setError("Enter your email and password.");
+    if(!/^\S+@\S+\.\S+$/.test(normalizedEmail)) return setError("Enter a valid email address.");
     setBusy(true);
-    try {
-      await signIn(normalizedEmail, password);
-      router.replace("/(tabs)/home");
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Unable to sign in right now.");
-    } finally {
-      setBusy(false);
-    }
+    try { await signIn(normalizedEmail,password); router.replace("/(tabs)/home"); }
+    catch(err){ setError(err instanceof ApiError?err.message:"Unable to sign in right now."); }
+    finally{ setBusy(false); }
   }
 
-  return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View style={styles.glowOne} />
-      <View style={styles.glowTwo} />
-      <View style={styles.container}>
-        <GlassCard style={styles.card} intensity={28}>
-          <View style={styles.brand}><Text style={styles.brandText}>TTFL</Text></View>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Sign in to shop, track orders and manage your account.</Text>
-
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            placeholderTextColor="#9ca3af"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoCorrect={false}
-            autoComplete="email"
-          />
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password"
-            placeholderTextColor="#9ca3af"
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="password"
-            onSubmitEditing={submit}
-            returnKeyType="go"
-          />
-
-          <Pressable onPress={() => router.push("/(auth)/forgot-password")}>
-            <Text style={styles.forgot}>Forgot password?</Text>
-          </Pressable>
-
-          {!!error && <Text style={styles.error}>{error}</Text>}
-
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && styles.pressed, busy && styles.disabled]}
-            onPress={submit}
-            disabled={busy}
-          >
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign in</Text>}
-          </Pressable>
-
-          <Text style={styles.footer}>New to TTFL? <Link href="/(auth)/register" style={styles.link}>Create an account</Link></Text>
-        </GlassCard>
+  return <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS==="ios"?"padding":undefined}>
+    <View style={styles.shell}>
+      <View style={styles.form}>
+        <Text style={styles.title}>Log in to TTFL Store</Text>
+        <Text style={styles.subtitle}>Access your account, orders and shopping tools.</Text>
+        <View style={styles.divider}><View style={styles.line}/><Text style={styles.or}>continue with email</Text><View style={styles.line}/></View>
+        <Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email"/>
+        <View style={styles.field}>
+          <View style={styles.labelRow}><Text style={styles.label}>Password</Text><Pressable onPress={()=>router.push("/(auth)/forgot-password")}><Text style={styles.forgot}>Forgot password?</Text></Pressable></View>
+          <TextInput value={password} onChangeText={setPassword} style={styles.input} secureTextEntry autoCapitalize="none" autoCorrect={false} autoComplete="password" onSubmitEditing={submit}/>
+        </View>
+        {!!error&&<Text style={styles.error}>{error}</Text>}
+        <Pressable onPress={submit} disabled={busy} style={({pressed})=>[styles.button,pressed&&styles.pressed,busy&&styles.disabled]}>{busy?<ActivityIndicator color="#fff"/>:<Text style={styles.buttonText}>Log in</Text>}</Pressable>
+        <Text style={styles.footer}>New here? <Link href="/(auth)/register" style={styles.link}>Create an account</Link></Text>
+        <Text style={styles.footer2}>Want to sell? <Link href="/sell" style={styles.link}>Become a vendor</Link></Text>
       </View>
-    </KeyboardAvoidingView>
-  );
+    </View>
+  </KeyboardAvoidingView>;
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f6f6f7" },
-  container: { flex: 1, justifyContent: "center", padding: 20 },
-  glowOne: { position: "absolute", width: 220, height: 220, borderRadius: 110, backgroundColor: "rgba(17,17,17,.035)", top: 80, right: -90 },
-  glowTwo: { position: "absolute", width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(0,122,255,.035)", bottom: 70, left: -90 },
-  card: { borderRadius: 26, padding: 24 },
-  brand: { width: 52, height: 52, borderRadius: 16, backgroundColor: "#111", alignItems: "center", justifyContent: "center", marginBottom: 24 },
-  brandText: { color: "#fff", fontWeight: "800", fontSize: 18 },
-  title: { fontSize: 32, fontWeight: "800", color: "#111", letterSpacing: -1 },
-  subtitle: { fontSize: 16, color: "#6b7280", lineHeight: 23, marginTop: 8, marginBottom: 28 },
-  input: { height: 54, borderWidth: 1, borderColor: "rgba(229,231,235,.95)", borderRadius: 14, paddingHorizontal: 16, fontSize: 16, marginBottom: 12, color: "#111", backgroundColor: "rgba(255,255,255,.72)" },
-  forgot: { alignSelf: "flex-end", color: "#111", fontSize: 13, fontWeight: "700", marginTop: -3, marginBottom: 8 },
-  button: { height: 54, borderRadius: 14, backgroundColor: "#111", alignItems: "center", justifyContent: "center", marginTop: 8 },
-  pressed: { opacity: .8 },
-  disabled: { opacity: .55 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  error: { color: "#dc2626", marginBottom: 4 },
-  footer: { textAlign: "center", marginTop: 24, color: "#6b7280" },
-  link: { color: "#111", fontWeight: "700" },
+function Field({label,...props}:{label:string}&React.ComponentProps<typeof TextInput>){return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input}/></View>}
+const styles=StyleSheet.create({
+ screen:{flex:1,backgroundColor:theme.colors.cloud50},shell:{flex:1,justifyContent:"center",paddingHorizontal:18},form:{width:"100%",maxWidth:420,alignSelf:"center"},
+ title:{fontSize:21,fontWeight:"800",color:theme.colors.graphite900},subtitle:{fontSize:13,color:theme.colors.graphite600,marginTop:5},
+ divider:{flexDirection:"row",alignItems:"center",gap:10,marginVertical:22},line:{flex:1,height:1,backgroundColor:theme.colors.graphite200},or:{fontSize:11,color:theme.colors.graphite400},
+ field:{marginBottom:15},labelRow:{flexDirection:"row",alignItems:"center",justifyContent:"space-between"},label:{fontSize:13,fontWeight:"600",color:theme.colors.graphite700,marginBottom:5},forgot:{fontSize:11,color:theme.colors.ember600,fontWeight:"600",marginBottom:5},
+ input:{height:44,borderWidth:1,borderColor:theme.colors.graphite200,borderRadius:7,paddingHorizontal:12,fontSize:14,color:theme.colors.graphite900,backgroundColor:"#fff"},
+ error:{backgroundColor:theme.colors.ember100,color:theme.colors.ember700,borderRadius:7,paddingHorizontal:12,paddingVertical:9,fontSize:12,marginBottom:4},
+ button:{height:44,borderRadius:10,backgroundColor:theme.colors.ember600,alignItems:"center",justifyContent:"center",marginTop:7},buttonText:{color:"#fff",fontSize:13,fontWeight:"700"},pressed:{opacity:.82},disabled:{opacity:.6},
+ footer:{textAlign:"center",marginTop:20,fontSize:13,color:theme.colors.graphite600},footer2:{textAlign:"center",marginTop:7,fontSize:13,color:theme.colors.graphite600},link:{color:theme.colors.ember600,fontWeight:"600"}
 });
