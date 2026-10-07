@@ -1,6 +1,16 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, View } from "react-native";
-import { theme } from "@/lib/theme";
-export default function TabsLayout(){return <Tabs screenOptions={{headerShown:false,tabBarActiveTintColor:theme.colors.ember600,tabBarInactiveTintColor:theme.colors.graphite600,tabBarLabelStyle:{fontSize:10,fontWeight:"600"},tabBarStyle:styles.tabBar,tabBarHideOnKeyboard:true,tabBarBackground:()=> <View style={styles.bg}/>}}><Tabs.Screen name="home" options={{title:"Home",tabBarIcon:({color,size})=><Ionicons name="home-outline" size={size} color={color}/>}}/><Tabs.Screen name="explore" options={{title:"Shop",tabBarIcon:({color,size})=><Ionicons name="search-outline" size={size} color={color}/>}}/><Tabs.Screen name="orders" options={{title:"Orders",tabBarIcon:({color,size})=><Ionicons name="receipt-outline" size={size} color={color}/>}}/><Tabs.Screen name="account" options={{title:"Account",tabBarIcon:({color,size})=><Ionicons name="person-outline" size={size} color={color}/>}}/></Tabs>}
-const styles=StyleSheet.create({tabBar:{height:64,paddingTop:5,paddingBottom:8,borderTopWidth:1,borderTopColor:theme.colors.graphite200,backgroundColor:"#fff",elevation:0,shadowOpacity:0},bg:{...StyleSheet.absoluteFill,backgroundColor:"#fff"}});
+import { useAuth } from "@/lib/auth";
+import { LiquidGlassNav } from "@/components/LiquidGlassNav";
+
+export default function TabsLayout() {
+  const { user } = useAuth();
+  return <>
+    <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: "none" } }}>
+      <Tabs.Screen name="home" options={{ title: "Home" }} />
+      <Tabs.Screen name="explore" options={{ title: "Shop" }} />
+      <Tabs.Screen name="orders" options={{ title: "Orders" }} />
+      <Tabs.Screen name="account" options={{ title: "Settings" }} />
+    </Tabs>
+    <LiquidGlassNav isVendor={user?.role === "VENDOR"} />
+  </>;
+}
