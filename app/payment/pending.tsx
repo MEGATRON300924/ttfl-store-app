@@ -50,7 +50,7 @@ export default function PaymentPendingScreen() {
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: true, title: "Payment" }} />
       <GlassCard style={styles.card} intensity={28}>
-        <View style={[styles.icon, paid && styles.successIcon, failed && styles.failedIcon]}><Ionicons name={paid ? "checkmark" : failed ? "close" : "card-outline"} size={30} color=theme.colors.graphite950 /></View>
+        <View style={[styles.icon, paid && styles.successIcon, failed && styles.failedIcon]}><Ionicons name={paid ? "checkmark" : failed ? "close" : "card-outline"} size={30} color={theme.colors.graphite950} /></View>
         <Text style={styles.title}>{paid ? "Payment confirmed" : failed ? "Payment not completed" : "Payment started"}</Text>
         <Text style={styles.copy}>{paid ? "Your payment has been confirmed and your TTFL order is now moving through the normal order and tracking flow." : failed ? "The payment was not completed. Your cart is still available so you can try again if the order is still awaiting payment." : "Your payment page has opened. TTFL is checking for confirmation automatically, so you do not need to keep refreshing."}</Text>
         <Text style={styles.order}>Order {orderNumber}</Text>
