@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   glassWash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(255,255,255,0.24)",
   },
   topShine: {
