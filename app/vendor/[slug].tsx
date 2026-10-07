@@ -110,7 +110,7 @@ export default function VendorStoreScreen() {
                 <View><Text style={styles.statValue}>{store.verified ? "Verified" : "Seller"}</Text><Text style={styles.statLabel}>Status</Text></View>
               </View>
               {(store.headline || store.description || store.bio) && <View style={styles.descriptionBlock}><Text style={styles.headline}>{store.headline || "About this store"}</Text><Text style={styles.description}>{store.description || store.bio}</Text></View>}
-              {store.badges && store.badges.length > 0 && <View style={styles.badges}>{store.badges.map((badge) => <View key={badge} style={styles.badge}><Ionicons name="shield-checkmark-outline" size={13} color=theme.colors.graphite950 /><Text style={styles.badgeText}>{badge}</Text></View>)}</View>}
+              {store.badges && store.badges.length > 0 && <View style={styles.badges}>{store.badges.map((badge) => <View key={badge} style={styles.badge}><Ionicons name="shield-checkmark-outline" size={13} color={theme.colors.graphite950} /><Text style={styles.badgeText}>{badge}</Text></View>)}</View>}
             </GlassCard>
 
             <View style={styles.sectionRow}><Text style={styles.sectionTitle}>Products</Text><Text style={styles.sectionCount}>{products.length}</Text></View>
@@ -124,7 +124,7 @@ export default function VendorStoreScreen() {
             <GlassCard style={styles.productCard} intensity={24}>
               <View style={styles.productImage}>{image ? <Image source={{ uri: image }} style={styles.image} resizeMode="cover" /> : <Text style={styles.productInitial}>{item.name[0]?.toUpperCase() ?? "P"}</Text>}</View>
               <View style={styles.productInfo}><Text style={styles.productName} numberOfLines={2}>{item.name}</Text><Text style={styles.price}>{item.currency ?? "₦"}{price.toLocaleString()}</Text><Text style={styles.stock}>{item.stock && item.stock > 0 ? `${item.stock} available` : "Out of stock"}</Text></View>
-              <Ionicons name="chevron-forward" size={18} color=theme.colors.graphite400 />
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.graphite400} />
             </GlassCard>
           </Pressable>;
         }}
