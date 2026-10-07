@@ -43,10 +43,10 @@ export default function ProfileScreen() {
 }
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) {
-  return <View style={styles.header}><Pressable onPress={onBack} style={styles.back}><Ionicons name="arrow-back" size={21} color=theme.colors.graphite950 /></Pressable><Text style={styles.title}>{title}</Text><View style={styles.spacer} /></View>;
+  return <View style={styles.header}><Pressable onPress={onBack} style={styles.back}><Ionicons name="arrow-back" size={21} color={theme.colors.graphite950} /></Pressable><Text style={styles.title}>{title}</Text><View style={styles.spacer} /></View>;
 }
 function Field({ label, last, ...props }: { label: string; last?: boolean } & React.ComponentProps<typeof TextInput>) {
-  return <View style={[styles.field, !last && styles.fieldBorder]}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input} placeholderTextColor=theme.colors.graphite400 /></View>;
+  return <View style={[styles.field, !last && styles.fieldBorder]}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input} placeholderTextColor={theme.colors.graphite400} /></View>;
 }
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.colors.cloud50 }, content: { padding: 18, paddingTop: 58, paddingBottom: 50 },
