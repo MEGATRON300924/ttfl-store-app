@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { theme } from "@/lib/theme";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -42,14 +43,14 @@ export default function ProfileScreen() {
 }
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) {
-  return <View style={styles.header}><Pressable onPress={onBack} style={styles.back}><Ionicons name="arrow-back" size={21} color="#111" /></Pressable><Text style={styles.title}>{title}</Text><View style={styles.spacer} /></View>;
+  return <View style={styles.header}><Pressable onPress={onBack} style={styles.back}><Ionicons name="arrow-back" size={21} color=theme.colors.graphite950 /></Pressable><Text style={styles.title}>{title}</Text><View style={styles.spacer} /></View>;
 }
 function Field({ label, last, ...props }: { label: string; last?: boolean } & React.ComponentProps<typeof TextInput>) {
-  return <View style={[styles.field, !last && styles.fieldBorder]}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input} placeholderTextColor="#aaa" /></View>;
+  return <View style={[styles.field, !last && styles.fieldBorder]}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input} placeholderTextColor=theme.colors.graphite400 /></View>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f7f7f7" }, content: { padding: 18, paddingTop: 58, paddingBottom: 50 },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 22 }, back: { width: 42, height: 42, borderRadius: 14, backgroundColor: "rgba(255,255,255,.72)", alignItems: "center", justifyContent: "center" }, spacer: { width: 42 }, title: { flex: 1, textAlign: "center", fontSize: 20, fontWeight: "800", color: "#111" },
-  card: { paddingHorizontal: 16, borderRadius: 20 }, field: { paddingVertical: 14 }, fieldBorder: { borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,.06)" }, label: { fontSize: 11, color: "#999", marginBottom: 4 }, input: { color: "#111", fontSize: 15, fontWeight: "600", paddingVertical: 3 },
-  button: { height: 54, borderRadius: 17, backgroundColor: "#111", alignItems: "center", justifyContent: "center", marginTop: 18 }, buttonText: { color: "#fff", fontWeight: "800", fontSize: 15 }, pressed: { opacity: .8 }, disabled: { opacity: .55 },
+  screen: { flex: 1, backgroundColor: theme.colors.cloud50 }, content: { padding: 18, paddingTop: 58, paddingBottom: 50 },
+  header: { flexDirection: "row", alignItems: "center", marginBottom: 22 }, back: { width: 42, height: 42, borderRadius: theme.radius.card, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }, spacer: { width: 42 }, title: { flex: 1, textAlign: "center", fontSize: 20, fontWeight: "800", color: theme.colors.graphite950 },
+  card: { paddingHorizontal: 16, borderRadius: theme.radius.card }, field: { paddingVertical: 14 }, fieldBorder: { borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,.06)" }, label: { fontSize: 11, color: theme.colors.graphite400, marginBottom: 4 }, input: { color: theme.colors.graphite950, fontSize: 15, fontWeight: "600", paddingVertical: 3 },
+  button: { height: 54, borderRadius: theme.radius.card, backgroundColor: theme.colors.graphite950, alignItems: "center", justifyContent: "center", marginTop: 18 }, buttonText: { color: "#fff", fontWeight: "800", fontSize: 15 }, pressed: { opacity: .8 }, disabled: { opacity: .55 },
 });
