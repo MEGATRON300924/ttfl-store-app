@@ -5,6 +5,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, Text
 import { GlassCard } from "@/components/GlassCard";
 import { api, ApiError } from "@/lib/api";
 import { DeliveryAddress, useCart } from "@/lib/cart";
+import { theme } from "@/lib/theme";
 
 type Product = {
   id: string; publicProductId?: string; name: string; slug: string; description: string; price: string | number; previousPrice?: string | number | null;
