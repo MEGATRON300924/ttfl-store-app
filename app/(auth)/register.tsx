@@ -3,119 +3,13 @@ import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { theme } from "@/lib/theme";
 
-const fields = [
-  { key: "firstName", label: "First name", keyboardType: "default" as const, autoCapitalize: "words" as const },
-  { key: "lastName", label: "Last name", keyboardType: "default" as const, autoCapitalize: "words" as const },
-  { key: "email", label: "Email", keyboardType: "email-address" as const, autoCapitalize: "none" as const },
-  { key: "phone", label: "Phone number", keyboardType: "phone-pad" as const, autoCapitalize: "none" as const },
-  { key: "password", label: "Password", keyboardType: "default" as const, autoCapitalize: "none" as const },
-] as const;
-
-type FormKey = (typeof fields)[number]["key"];
-type FormState = Record<FormKey, string>;
-
-function validateForm(form: FormState) {
-  if (Object.values(form).some((value) => !value.trim())) return "Complete all fields.";
-  if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Enter a valid email address.";
-  if (form.phone.trim().length < 7 || form.phone.trim().length > 20) return "Enter a valid phone number.";
-  if (form.password.length < 8) return "Password must be at least 8 characters.";
-  if (form.password.length > 72) return "Password is too long.";
-  if (!/[a-z]/.test(form.password)) return "Password needs a lowercase letter.";
-  if (!/[A-Z]/.test(form.password)) return "Password needs an uppercase letter.";
-  if (!/[0-9]/.test(form.password)) return "Password needs a number.";
-  return null;
-}
-
-export default function RegisterScreen() {
-  const { signUp } = useAuth();
-  const [form, setForm] = useState<FormState>({ firstName: "", lastName: "", email: "", phone: "", password: "" });
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const update = (key: FormKey, value: string) => setForm((current) => ({ ...current, [key]: value }));
-
-  async function submit() {
-    setError("");
-    const validationError = validateForm(form);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setBusy(true);
-    try {
-      await signUp({
-        ...form,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        phone: form.phone.trim(),
-      });
-      router.replace("/(tabs)/home");
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Unable to create your account right now.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create your TTFL account</Text>
-        <Text style={styles.subtitle}>One account across TTFL Store web and mobile.</Text>
-
-        {fields.map((field) => (
-          <View key={field.key} style={styles.field}>
-            <Text style={styles.label}>{field.label}</Text>
-            <TextInput
-              style={styles.input}
-              value={form[field.key]}
-              onChangeText={(value) => update(field.key, value)}
-              placeholder={`Enter ${field.label.toLowerCase()}`}
-              placeholderTextColor="#8b8f98"
-              secureTextEntry={field.key === "password"}
-              autoCapitalize={field.autoCapitalize}
-              keyboardType={field.keyboardType}
-              autoCorrect={false}
-            />
-            {field.key === "password" && <Text style={styles.hint}>8+ characters, with uppercase, lowercase, and a number.</Text>}
-          </View>
-        ))}
-
-        {!!error && <Text style={styles.error}>{error}</Text>}
-
-        <Pressable
-          style={({ pressed }) => [styles.button, pressed && styles.pressed, busy && styles.disabled]}
-          onPress={submit}
-          disabled={busy}
-        >
-          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
-        </Pressable>
-
-        <Text style={styles.footer}>
-          Already have an account? <Link href="/(auth)/login" style={styles.link}>Sign in</Link>
-        </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
-}
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f6f6f7" },
-  container: { flexGrow: 1, justifyContent: "center", padding: 24 },
-  title: { fontSize: 30, fontWeight: "800", color: "#111", letterSpacing: -0.8 },
-  subtitle: { fontSize: 16, color: "#6b7280", marginTop: 8, marginBottom: 26 },
-  field: { marginBottom: 12 },
-  label: { fontSize: 13, fontWeight: "700", color: "#374151", marginBottom: 6, marginLeft: 3 },
-  input: { height: 54, borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 14, paddingHorizontal: 16, fontSize: 16, color: "#111", backgroundColor: "#fff" },
-  hint: { fontSize: 12, color: "#6b7280", marginTop: 6, marginLeft: 3 },
-  error: { color: "#dc2626", marginBottom: 8 },
-  button: { height: 54, borderRadius: 14, backgroundColor: "#111", alignItems: "center", justifyContent: "center", marginTop: 4 },
-  pressed: { opacity: 0.8 },
-  disabled: { opacity: 0.55 },
-  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  footer: { textAlign: "center", marginTop: 24, color: "#6b7280" },
-  link: { color: "#111", fontWeight: "700" },
-});
+const fields=[["firstName","First name"],["lastName","Last name"],["email","Email"],["phone","Phone number"],["password","Password"]] as const;
+type FormKey=typeof fields[number][0]; type FormState=Record<FormKey,string>;
+function validate(f:FormState){if(Object.values(f).some(v=>!v.trim()))return "Complete all fields.";if(!/^\S+@\S+\.\S+$/.test(f.email.trim()))return "Enter a valid email address.";if(f.phone.trim().length<7)return "A valid phone number is required.";if(f.password.length<8)return "Password must be at least 8 characters.";if(!/[a-z]/.test(f.password)||!/[A-Z]/.test(f.password)||!/[0-9]/.test(f.password))return "Password needs upper, lower, and a number.";return null}
+export default function RegisterScreen(){const{signUp}=useAuth();const[form,setForm]=useState<FormState>({firstName:"",lastName:"",email:"",phone:"",password:""});const[error,setError]=useState("");const[busy,setBusy]=useState(false);
+async function submit(){setError("");const e=validate(form);if(e)return setError(e);setBusy(true);try{await signUp({...form,firstName:form.firstName.trim(),lastName:form.lastName.trim(),email:form.email.trim().toLowerCase(),phone:form.phone.trim()});router.replace("/(tabs)/home")}catch(err){setError(err instanceof ApiError?err.message:"Unable to create your account right now.")}finally{setBusy(false)}}
+return <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS==="ios"?"padding":undefined}><ScrollView contentContainerStyle={styles.shell} keyboardShouldPersistTaps="handled"><View style={styles.form}><Text style={styles.title}>Create your account</Text><Text style={styles.subtitle}>Join TTFL Store and start shopping.</Text><View style={styles.divider}><View style={styles.line}/><Text style={styles.or}>create with email</Text><View style={styles.line}/></View><View style={styles.grid}>{fields.slice(0,2).map(([key,label])=><Field key={key} label={label} value={form[key]} onChangeText={v=>setForm({...form,[key]:v})}/>)}</View>{fields.slice(2).map(([key,label])=><Field key={key} label={label} value={form[key]} onChangeText={v=>setForm({...form,[key]:v})} secureTextEntry={key==="password"} keyboardType={key==="email"?"email-address":key==="phone"?"phone-pad":"default"} autoCapitalize={key==="email"||key==="password"?"none":"words"} hint={key==="password"?"At least 8 characters, with upper, lower, and a number.":undefined}/>)}{!!error&&<Text style={styles.error}>{error}</Text>}<Pressable onPress={submit} disabled={busy} style={({pressed})=>[styles.button,pressed&&styles.pressed,busy&&styles.disabled]}>{busy?<ActivityIndicator color="#fff"/>:<Text style={styles.buttonText}>Create account</Text>}</Pressable><Text style={styles.footer}>Already have an account? <Link href="/(auth)/login" style={styles.link}>Log in</Link></Text></View></ScrollView></KeyboardAvoidingView>}
+function Field({label,hint,...props}:{label:string;hint?:string}&React.ComponentProps<typeof TextInput>){return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input}/>{hint&&<Text style={styles.hint}>{hint}</Text>}</View>}
+const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},shell:{flexGrow:1,justifyContent:"center",padding:18,paddingVertical:50},form:{width:"100%",maxWidth:420,alignSelf:"center"},title:{fontSize:21,fontWeight:"800",color:theme.colors.graphite900},subtitle:{fontSize:13,color:theme.colors.graphite600,marginTop:5},divider:{flexDirection:"row",alignItems:"center",gap:10,marginVertical:22},line:{flex:1,height:1,backgroundColor:theme.colors.graphite200},or:{fontSize:11,color:theme.colors.graphite400},grid:{flexDirection:"row",gap:10},field:{flex:1,marginBottom:14},label:{fontSize:13,fontWeight:"600",color:theme.colors.graphite700,marginBottom:5},input:{height:44,borderWidth:1,borderColor:theme.colors.graphite200,borderRadius:7,paddingHorizontal:12,fontSize:14,color:theme.colors.graphite900,backgroundColor:"#fff"},hint:{fontSize:10.5,color:theme.colors.graphite400,marginTop:5,lineHeight:15},error:{backgroundColor:theme.colors.ember100,color:theme.colors.ember700,borderRadius:7,padding:10,fontSize:12},button:{height:44,borderRadius:10,backgroundColor:theme.colors.ember600,alignItems:"center",justifyContent:"center",marginTop:5},buttonText:{color:"#fff",fontSize:13,fontWeight:"700"},pressed:{opacity:.82},disabled:{opacity:.6},footer:{textAlign:"center",marginTop:20,fontSize:13,color:theme.colors.graphite600},link:{color:theme.colors.ember600,fontWeight:"600"}});
