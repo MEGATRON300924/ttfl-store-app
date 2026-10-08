@@ -12,9 +12,10 @@ workflows:
         script: |
           npm install --include=dev
 
-      - name: Align Expo SDK dependencies
+      - name: Verify Expo SDK dependencies
         script: |
-          npx expo install --fix
+          npx expo install --check
+          npx expo-doctor
 
       - name: Generate Android native project
         script: |
