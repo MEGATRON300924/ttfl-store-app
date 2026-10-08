@@ -1,6 +1,6 @@
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { GlassCard } from "@/components/GlassCard";
 import { theme } from "@/lib/theme";
@@ -15,7 +15,7 @@ export default function RewardsScreen() {
   const [claimed,setClaimed]=useState(false);
   const [loading,setLoading]=useState(true);
   const [claiming,setClaiming]=useState(false);
-  const [error,setError]=useState("");
+  const [error,setError]=useState("");\n  const fade=useRef(new Animated.Value(0)).current;
 
   async function load() {
     setLoading(true); setError("");
@@ -27,7 +27,7 @@ export default function RewardsScreen() {
     finally { setLoading(false); }
   }
 
-  useEffect(()=>{void load()},[]);
+  useEffect(()=>{void load();Animated.timing(fade,{toValue:1,duration:450,useNativeDriver:true}).start()},[fade]);
 
   async function claim() {
     setClaiming(true); setError("");
@@ -39,7 +39,7 @@ export default function RewardsScreen() {
     finally { setClaiming(false); }
   }
 
-  return <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+  return <Animated.ScrollView style={[styles.screen,{opacity:fade}]} contentContainerStyle={styles.content}>
     <Stack.Screen options={{headerShown:true,title:"TTFL Rewards"}} />
     <Text style={styles.kicker}>TTFL STORE</Text>
     <Text style={styles.title}>TTFL Rewards</Text>
@@ -51,7 +51,7 @@ export default function RewardsScreen() {
       <Text style={styles.note}>1 point = ₦1 · Up to 20% of an eligible order can be paid with points.</Text>
     </GlassCard>
     <GlassCard style={styles.card}>
-      <Text style={styles.cardTitle}>📱 App download reward</Text>
+      <Text style={styles.cardTitle}>App download reward</Text>
       <Text style={styles.cardText}>Claim {appDownloadPoints.toLocaleString()} points for downloading the TTFL Store app. This reward can only be claimed once.</Text>
       <Pressable disabled={claimed||claiming} onPress={claim} style={[styles.button,(claimed||claiming)&&styles.disabled]}><Text style={styles.buttonText}>{claimed?"Reward claimed ✓":claiming?"Claiming…":`Claim ${appDownloadPoints.toLocaleString()} points`}</Text></Pressable>
     </GlassCard>
@@ -62,4 +62,4 @@ export default function RewardsScreen() {
   </ScrollView>
 }
 function Stat({label,value}:{label:string;value?:number}){return <View style={styles.stat}><Text style={styles.statLabel}>{label}</Text><Text style={styles.statValue}>{Number(value??0).toLocaleString()}</Text></View>}
-const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},content:{padding:18,paddingTop:58,paddingBottom:80},kicker:{fontSize:10,fontWeight:"900",letterSpacing:1.5,color:theme.colors.ember600},title:{fontSize:31,fontWeight:"900",letterSpacing:-1,color:theme.colors.graphite950,marginTop:4},subtitle:{fontSize:13,color:theme.colors.graphite600,marginTop:5,marginBottom:18},hero:{padding:20,borderRadius: theme.radius.card,backgroundColor:theme.colors.graphite950},label:{fontSize:9,fontWeight:"900",letterSpacing:1.4,color:theme.colors.graphite400},points:{fontSize:38,fontWeight:"900",color:"#fff",marginTop:5},row:{flexDirection:"row",justifyContent:"space-between",marginTop:17,paddingTop:13,borderTopWidth:1,borderTopColor:"rgba(255,255,255,.12)"},level:{fontSize:9,fontWeight:"900",letterSpacing:1,color:theme.colors.graphite400},levelValue:{fontSize:12,fontWeight:"900",color:"#fff"},note:{fontSize:11,color:theme.colors.graphite200,lineHeight:17,marginTop:12},card:{padding:17,borderRadius: theme.radius.card,marginTop:12},cardTitle:{fontSize:15,fontWeight:"900",color:theme.colors.graphite950},cardText:{fontSize:12,color:theme.colors.graphite600,lineHeight:18,marginTop:6},button:{height:48,borderRadius: theme.radius.card,backgroundColor:theme.colors.graphite950,alignItems:"center",justifyContent:"center",marginTop:14},buttonText:{color:"#fff",fontSize:13,fontWeight:"900"},disabled:{opacity:.5},error:{fontSize:12,color:theme.colors.ember700,lineHeight:18,marginTop:10},stats:{flexDirection:"row",gap:8,marginTop:12},stat:{flex:1,backgroundColor:"#fff",borderWidth:1,borderColor:theme.colors.graphite200,borderRadius: theme.radius.card,padding:12},statLabel:{fontSize:9,color:theme.colors.graphite600,fontWeight:"800"},statValue:{fontSize:16,color:theme.colors.graphite950,fontWeight:"900",marginTop:5},section:{fontSize:9,fontWeight:"900",letterSpacing:1.4,color:theme.colors.graphite600,marginTop:25,marginBottom:8},empty:{fontSize:13,color:theme.colors.graphite600},item:{backgroundColor:"#fff",borderWidth:1,borderColor:theme.colors.graphite200,borderRadius: theme.radius.card,padding:13,flexDirection:"row",alignItems:"center",marginBottom:7},itemCopy:{flex:1},itemTitle:{fontSize:12,fontWeight:"800",color:theme.colors.graphite950},itemDate:{fontSize:10,color:theme.colors.graphite600,marginTop:3},itemPoints:{fontSize:13,fontWeight:"900",color:theme.colors.green700},negative:{color:theme.colors.ember700}});
+const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},content:{padding:18,paddingTop:58,paddingBottom:80},kicker:{fontSize:10,fontWeight:"900",letterSpacing:1.5,color:theme.colors.ember600},title:{fontSize:31,fontWeight:"900",letterSpacing:-1,color:theme.colors.text,marginTop:4},subtitle:{fontSize:13,color:theme.colors.textMuted,marginTop:5,marginBottom:18},hero:{padding:20,borderRadius: theme.radius.card,backgroundColor:theme.colors.graphite950},label:{fontSize:9,fontWeight:"900",letterSpacing:1.4,color:theme.colors.textMuted},points:{fontSize:38,fontWeight:"900",color:"#fff",marginTop:5},row:{flexDirection:"row",justifyContent:"space-between",marginTop:17,paddingTop:13,borderTopWidth:1,borderTopColor:"rgba(255,255,255,.12)"},level:{fontSize:9,fontWeight:"900",letterSpacing:1,color:theme.colors.graphite400},levelValue:{fontSize:12,fontWeight:"900",color:"#fff"},note:{fontSize:11,color:theme.colors.graphite200,lineHeight:17,marginTop:12},card:{padding:17,borderRadius: theme.radius.card,marginTop:12},cardTitle:{fontSize:15,fontWeight:"900",color:theme.colors.graphite950},cardText:{fontSize:12,color:theme.colors.graphite600,lineHeight:18,marginTop:6},button:{height:48,borderRadius: theme.radius.card,backgroundColor:theme.colors.graphite950,alignItems:"center",justifyContent:"center",marginTop:14},buttonText:{color:"#fff",fontSize:13,fontWeight:"900"},disabled:{opacity:.5},error:{fontSize:12,color:theme.colors.ember700,lineHeight:18,marginTop:10},stats:{flexDirection:"row",gap:8,marginTop:12},stat:{flex:1,backgroundColor:theme.colors.surfaceRaised,borderWidth:1,borderColor:theme.colors.glassBorder,borderRadius: theme.radius.card,padding:12},statLabel:{fontSize:9,color:theme.colors.graphite600,fontWeight:"800"},statValue:{fontSize:16,color:theme.colors.graphite950,fontWeight:"900",marginTop:5},section:{fontSize:9,fontWeight:"900",letterSpacing:1.4,color:theme.colors.graphite600,marginTop:25,marginBottom:8},empty:{fontSize:13,color:theme.colors.graphite600},item:{backgroundColor:"#fff",borderWidth:1,borderColor:theme.colors.graphite200,borderRadius: theme.radius.card,padding:13,flexDirection:"row",alignItems:"center",marginBottom:7},itemCopy:{flex:1},itemTitle:{fontSize:12,fontWeight:"800",color:theme.colors.graphite950},itemDate:{fontSize:10,color:theme.colors.graphite600,marginTop:3},itemPoints:{fontSize:13,fontWeight:"900",color:theme.colors.green700},negative:{color:theme.colors.ember700}});
