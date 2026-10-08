@@ -15,7 +15,8 @@ export default function RewardsScreen() {
   const [claimed,setClaimed]=useState(false);
   const [loading,setLoading]=useState(true);
   const [claiming,setClaiming]=useState(false);
-  const [error,setError]=useState("");\n  const fade=useRef(new Animated.Value(0)).current;
+  const [error,setError]=useState("");
+  const fade=useRef(new Animated.Value(0)).current;
 
   async function load() {
     setLoading(true); setError("");
