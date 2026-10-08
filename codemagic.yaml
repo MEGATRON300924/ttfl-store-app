@@ -12,6 +12,26 @@ workflows:
         script: |
           npm install --include=dev
 
+      - name: Verify Expo dependency alignment
+        script: |
+          npx expo install --check
+
+      - name: Expo Doctor
+        script: |
+          npx expo-doctor
+
+      - name: Typecheck
+        script: |
+          npm run typecheck
+
+      - name: Lint
+        script: |
+          npm run lint
+
+      - name: Bundle Android JavaScript
+        script: |
+          npx expo export --platform android
+
       - name: Normalize Android app icon
         script: |
           if command -v sips >/dev/null 2>&1; then
@@ -22,11 +42,6 @@ workflows:
             exit 1
           fi
           file assets/icon.png
-
-      - name: Verify Expo SDK dependencies
-        script: |
-          npx expo install --check
-          npx expo-doctor
 
       - name: Generate Android native project
         script: |
