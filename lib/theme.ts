@@ -48,4 +48,4 @@ export const theme = {
 };
 
 export const money = (value: number | string, currency = "₦") =>
-  `${currency}${Number(value || 0).toLocaleString("en-NG")};
+  `${currency}${Number(value || 0).toLocaleString("en-NG")}`;
