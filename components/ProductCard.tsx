@@ -13,7 +13,7 @@ export type MobileProduct = {
   previousPrice?: number | string | null; imageUrl?: string | null;
   images?: { url: string; position?: number }[]; vendor?: string;
   vendorSlug?: string; verified?: boolean; rating?: number | string;
-  reviewCount?: number; currency?: string; comingSoon?: boolean;
+  reviewCount?: number; currency?: string; stock?: number; comingSoon?: boolean;
 };
 
 export function ProductCard({ product }: { product: MobileProduct }) {
