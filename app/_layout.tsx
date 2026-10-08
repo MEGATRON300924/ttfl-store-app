@@ -17,7 +17,7 @@ export default function RootLayout() {
     <AuthProvider>
       <CartProvider>
         <TermsGate />
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }} />
       </CartProvider>
     </AuthProvider>
