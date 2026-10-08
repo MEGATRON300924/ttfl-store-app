@@ -6,8 +6,8 @@ import { theme } from "@/lib/theme";
 
 export default function AccountScreen() {
   const { user, signOut } = useAuth();
-  if (!user) { return <View style={styles.loggedOut}><Ionicons name="person-circle-outline" size={62} color={theme.colors.ember500}/><Text style={styles.loggedOutTitle}>Your Account</Text><Text style={styles.loggedOutText}>Sign in to access orders, rewards, wishlist, settings and seller tools.</Text><Pressable onPress={()=>router.push("/(auth)/login")} style={styles.loginButton}><Text style={styles.loginButtonText}>Log in to TTFL Store</Text></Pressable></View>; }
   const router = useRouter();
+  if (!user) { return <View style={styles.loggedOut}><Ionicons name="person-circle-outline" size={62} color={theme.colors.ember500}/><Text style={styles.loggedOutTitle}>Your Account</Text><Text style={styles.loggedOutText}>Sign in to access orders, rewards, wishlist, settings and seller tools.</Text><Pressable onPress={()=>router.push("/(auth)/login")} style={styles.loginButton}><Text style={styles.loginButtonText}>Log in to TTFL Store</Text></Pressable></View>; }
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "T";
   const isVendor = user?.role === "VENDOR";
   const logout = () => Alert.alert("Sign out", "Are you sure you want to sign out?", [
