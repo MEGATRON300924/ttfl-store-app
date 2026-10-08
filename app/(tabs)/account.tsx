@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { theme } from "@/lib/theme";
 
 export default function AccountScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, savedAccounts, switchAccount } = useAuth();
   const router = useRouter();
   if (!user) { return <View style={styles.loggedOut}><Ionicons name="person-circle-outline" size={62} color={theme.colors.ember500}/><Text style={styles.loggedOutTitle}>Your Account</Text><Text style={styles.loggedOutText}>Sign in to access orders, rewards, wishlist, settings and seller tools.</Text><Pressable onPress={()=>router.push("/(auth)/login")} style={styles.loginButton}><Text style={styles.loginButtonText}>Log in to TTFL Store</Text></Pressable></View>; }
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "T";
@@ -26,7 +26,7 @@ export default function AccountScreen() {
     <CardAction icon="receipt-outline" title="My orders" subtitle="View and track purchases" onPress={() => router.push("/(tabs)/orders")} />
     <CardAction icon="heart-outline" title="Wishlist" subtitle="Products you saved" onPress={() => router.push("/wishlist")} />
     <CardAction icon="notifications-outline" title="Notifications" subtitle="Order and marketplace updates" onPress={() => router.push("/notifications")} />
-    <Text style={styles.section}>APP</Text><CardAction icon="options-outline" title="Customize your app" subtitle="Choose your navigation and app layout" onPress={() => router.push("/account/customize")} /><CardAction icon="swap-horizontal-outline" title="Switch account" subtitle="Keep another TTFL Store account ready" onPress={() => Alert.alert("Switch account","Account switching will keep your current session safe. Sign out and choose another saved account when account sessions are available.")} /><Text style={styles.section}>PROFILE & SECURITY</Text>
+    <Text style={styles.section}>APP</Text><CardAction icon="options-outline" title="Customize your app" subtitle="Choose your navigation and app layout" onPress={() => router.push("/account/customize")} /><CardAction icon="swap-horizontal-outline" title="Switch account" subtitle="Keep another TTFL Store account ready" onPress={() => Alert.alert("Switch account", "Choose a saved TTFL Store account.", [...savedAccounts.filter(account=>account.id!==user.id).map(account=>({text:account.email,onPress:()=>void switchAccount(account.id)})), {text:"Cancel",style:"cancel"}])} /><Text style={styles.section}>PROFILE & SECURITY</Text>
     <CardAction icon="person-outline" title="Edit profile" subtitle="Update your name and phone" onPress={() => router.push("/account/profile")} />
     <CardAction icon="location-outline" title="Saved addresses" subtitle="Manage delivery addresses" onPress={() => router.push("/account/addresses")} />
     <CardAction icon="lock-closed-outline" title="Password & security" subtitle="Change your account password" onPress={() => router.push("/account/password")} />
