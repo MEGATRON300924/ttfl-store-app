@@ -1,15 +1,23 @@
-import { Link, router } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { ApiError } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { router } from "expo-router";
+import { useRef } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { WebView } from "react-native-webview";
+import type { WebViewNavigation } from "react-native-webview";
 import { theme } from "@/lib/theme";
 
-export default function LoginScreen() {
-  const { signIn } = useAuth();
-  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
-  async function submit(){setError("");const normalizedEmail=email.trim().toLowerCase();if(!normalizedEmail||!password)return setError("Enter your email and password.");if(!/^\S+@\S+\.\S+$/.test(normalizedEmail))return setError("Enter a valid email address.");setBusy(true);try{await signIn(normalizedEmail,password);router.replace("/(tabs)/home")}catch(err){setError(err instanceof ApiError?err.message:"Unable to sign in right now.")}finally{setBusy(false)}}
-  return <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS==="ios"?"padding":undefined}><View style={styles.shell}><View style={styles.form}><Text style={styles.title}>Log in to TTFL Store</Text><Text style={styles.subtitle}>Access your account, orders and shopping tools.</Text><View style={styles.divider}><View style={styles.line}/><Text style={styles.or}>continue with email</Text><View style={styles.line}/></View><Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false}/><View style={styles.field}><View style={styles.labelRow}><Text style={styles.label}>Password</Text><Pressable onPress={()=>router.push("/(auth)/forgot-password")}><Text style={styles.forgot}>Forgot password?</Text></Pressable></View><TextInput value={password} onChangeText={setPassword} style={styles.input} secureTextEntry onSubmitEditing={submit}/></View>{!!error&&<Text style={styles.error}>{error}</Text>}<Pressable onPress={submit} disabled={busy} style={({pressed})=>[styles.button,pressed&&styles.pressed,busy&&styles.disabled]}>{busy?<ActivityIndicator color="#fff"/>:<Text style={styles.buttonText}>Log in</Text>}</Pressable><Text style={styles.footer}>New here? <Link href="/(auth)/register" style={styles.link}>Create an account</Link></Text><Text style={styles.footer2}>Want to sell? <Link href="/sell" style={styles.link}>Become a vendor</Link></Text></View></View></KeyboardAvoidingView>;
+const LOGIN_URL="https://www.ttflstore.name.ng/login?mobile-app=login";
+
+export default function LoginScreen(){
+ const web=useRef<WebView>(null);
+ function onNavigation(e:WebViewNavigation){
+  const url=e.url;
+  if(url.startsWith("ttflstore://")||url.startsWith("https://ttflstore.name.ng/auth/callback")){
+    router.replace("/(tabs)/home");
+  }
+ }
+ return <View style={styles.screen}>
+  <View style={styles.header}><View style={styles.brand}><Text style={styles.brandText}>TTFL</Text><Text style={styles.brandSub}>STORE</Text></View><Text style={styles.title}>Sign in</Text><Pressable onPress={()=>router.back()}><Text style={styles.close}>Close</Text></Pressable></View>
+  <View style={styles.webShell}><WebView ref={web} source={{uri:LOGIN_URL}} onNavigationStateChange={onNavigation} startInLoadingState renderLoading={()=> <View style={styles.loading}><ActivityIndicator color={theme.colors.ember500}/><Text style={styles.loadingText}>Loading TTFL Store…</Text></View>} sharedCookiesEnabled thirdPartyCookiesEnabled javaScriptEnabled domStorageEnabled/></View>
+ </View>
 }
-function Field({label,...props}:{label:string}&React.ComponentProps<typeof TextInput>){return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput {...props} style={styles.input}/></View>}
-const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},shell:{flex:1,justifyContent:"center",paddingHorizontal:18},form:{width:"100%",maxWidth:420,alignSelf:"center"},title:{fontSize:21,fontWeight:"800",color:theme.colors.graphite900},subtitle:{fontSize:13,color:theme.colors.graphite600,marginTop:5},divider:{flexDirection:"row",alignItems:"center",gap:10,marginVertical:22},line:{flex:1,height:1,backgroundColor:theme.colors.graphite200},or:{fontSize:11,color:theme.colors.graphite400},field:{marginBottom:15},labelRow:{flexDirection:"row",justifyContent:"space-between"},label:{fontSize:13,fontWeight:"600",color:theme.colors.graphite700,marginBottom:5},forgot:{fontSize:11,color:theme.colors.ember600,fontWeight:"600",marginBottom:5},input:{height:44,borderWidth:1,borderColor:theme.colors.graphite200,borderRadius:7,paddingHorizontal:12,fontSize:14,color:theme.colors.graphite900,backgroundColor:"#fff"},error:{backgroundColor:theme.colors.ember100,color:theme.colors.ember700,borderRadius:7,padding:10,fontSize:12},button:{height:44,borderRadius:10,backgroundColor:theme.colors.ember600,alignItems:"center",justifyContent:"center",marginTop:10},buttonText:{color:"#fff",fontSize:13,fontWeight:"700"},pressed:{opacity:.82},disabled:{opacity:.6},footer:{textAlign:"center",marginTop:20,fontSize:13,color:theme.colors.graphite600},footer2:{textAlign:"center",marginTop:7,fontSize:13,color:theme.colors.graphite600},link:{color:theme.colors.ember600,fontWeight:"600"}});
+const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},header:{height:72,paddingHorizontal:18,paddingTop:24,backgroundColor:theme.colors.surface,flexDirection:"row",alignItems:"center",borderBottomWidth:1,borderBottomColor:theme.colors.glassBorder},brand:{flexDirection:"row",alignItems:"baseline",gap:4},brandText:{fontSize:23,fontWeight:"900",color:theme.colors.text,letterSpacing:-1},brandSub:{fontSize:9,fontWeight:"900",letterSpacing:1.4,color:theme.colors.ember500},title:{flex:1,marginLeft:15,fontSize:17,fontWeight:"900",color:theme.colors.text},close:{fontSize:12,fontWeight:"800",color:theme.colors.textMuted},webShell:{flex:1,overflow:"hidden",backgroundColor:"#fff"},loading:{flex:1,alignItems:"center",justifyContent:"center",backgroundColor:theme.colors.cloud50},loadingText:{marginTop:8,fontSize:12,color:theme.colors.textMuted}});
