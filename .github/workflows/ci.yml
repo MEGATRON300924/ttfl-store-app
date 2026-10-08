@@ -22,8 +22,17 @@ jobs:
       - name: Install dependencies
         run: npm install --include=dev
 
+      - name: Verify Expo dependency alignment
+        run: npx expo install --check
+
+      - name: Expo Doctor
+        run: npx expo-doctor
+
       - name: Typecheck
         run: npm run typecheck
 
       - name: Lint
         run: npm run lint
+
+      - name: Bundle Android JavaScript
+        run: npx expo export --platform android
