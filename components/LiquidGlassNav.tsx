@@ -1,8 +1,9 @@
 import { BlurView } from "expo-blur";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { usePathname, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "@/lib/theme";
 
@@ -12,7 +13,7 @@ export function LiquidGlassNav({ isVendor, isLoggedIn }: { isVendor: boolean; is
   const pathname = usePathname();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const entrance = useRef(new Animated.Value(isLoggedIn ? 1 : 0.82)).current;
+  const entrance = useRef(new Animated.Value(isLoggedIn ? 1 : 0.82)).current;\n  const [layout, setLayout] = useState<"bottom"|"side">("bottom");\n  const [preferred, setPreferred] = useState<string[]>(["home","shop","orders","account"]);
 
   useEffect(() => {
     Animated.spring(entrance, { toValue: 1, useNativeDriver: true, damping: 14, stiffness: 170 }).start();
@@ -40,14 +41,14 @@ export function LiquidGlassNav({ isVendor, isLoggedIn }: { isVendor: boolean; is
     pathname.includes("/auth/login") ? "login" : "home";
 
   return (
-    <Animated.View pointerEvents="box-none" style={[styles.overlay, { paddingBottom: Math.max(insets.bottom, 8) + 8, opacity: entrance, transform: [{ translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }] }]}>
+    <Animated.View pointerEvents="box-none" style={[styles.overlay, layout==="side" && styles.sideOverlay, { paddingBottom: Math.max(insets.bottom, 8) + 8, opacity: entrance, transform: [{ translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }] }]}>
       <View style={styles.shadowShell}>
         <View style={styles.shell}>
           <BlurView intensity={95} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={styles.glassWash} />
           <View style={styles.glow} />
           <View style={styles.topShine} />
-          <View style={styles.nav}>
+          <View style={[styles.nav, layout==="side" && styles.sideNav]}>
             {items.map((item) => {
               const active = activeKey === item.key;
               const icon = active ? item.icon : ((item.icon + "-outline") as keyof typeof Ionicons.glyphMap);
@@ -72,13 +73,13 @@ export function LiquidGlassNav({ isVendor, isLoggedIn }: { isVendor: boolean; is
 }
 
 const styles = StyleSheet.create({
-  overlay:{position:"absolute",left:12,right:12,bottom:0,alignItems:"center"},
+  overlay:{position:"absolute",left:12,right:12,bottom:0,alignItems:"center"},sideOverlay:{left:12,right:"auto",top:"35%",bottom:"auto",paddingBottom:0},
   shadowShell:{width:"100%",borderRadius:28,shadowColor:"#000",shadowOffset:{width:0,height:12},shadowOpacity:.42,shadowRadius:28,elevation:18},
   shell:{width:"100%",minHeight:76,borderRadius:28,overflow:"hidden",borderWidth:1,borderColor:"rgba(255,255,255,.20)",backgroundColor:"rgba(18,22,30,.64)"},
   glassWash:{...StyleSheet.absoluteFillObject,backgroundColor:"rgba(255,255,255,.045)"},
   glow:{position:"absolute",left:"25%",right:"25%",top:-22,height:44,borderRadius:30,backgroundColor:"rgba(240,106,54,.08)"},
   topShine:{position:"absolute",top:0,left:26,right:26,height:1,backgroundColor:"rgba(255,255,255,.42)"},
-  nav:{minHeight:76,flexDirection:"row",alignItems:"center",justifyContent:"space-evenly",paddingHorizontal:7,paddingVertical:8},
+  nav:{minHeight:76,flexDirection:"row",alignItems:"center",justifyContent:"space-evenly",paddingHorizontal:7,paddingVertical:8},sideNav:{flexDirection:"column",minHeight:0,paddingHorizontal:7,paddingVertical:7,width:82}
   item:{flex:1,minWidth:0,alignItems:"center"},
   modeButton:{width:"100%",maxWidth:88,minHeight:58,borderRadius:21,alignItems:"center",justifyContent:"center",paddingHorizontal:5,gap:3},
   modeButtonActive:{backgroundColor:"rgba(255,255,255,.13)",borderWidth:1,borderColor:"rgba(255,255,255,.20)",shadowColor:"#000",shadowOffset:{width:0,height:4},shadowOpacity:.24,shadowRadius:10,elevation:4},
