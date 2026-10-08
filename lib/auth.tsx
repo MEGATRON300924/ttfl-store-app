@@ -65,7 +65,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [user?.id]);
 
-  const exchangeHandoff = useCallback(async (token: string) => {\n    const result = await api<{ user: User } & SessionTokens>("/api/auth/handoff/exchange", { method: "POST", body: JSON.stringify({ token }), skipRefresh: true });\n    await saveSession(result);\n    setUser(result.user);\n  }, []);\n\n  const signIn = useCallback(async (email: string, password: string) => {
+  const exchangeHandoff = useCallback(async (token: string) => {
+    const result = await api<{ user: User } & SessionTokens>("/api/auth/handoff/exchange", { method: "POST", body: JSON.stringify({ token }), skipRefresh: true });
+    await saveSession(result);
+    setUser(result.user);
+  }, []);
+
+  const signIn = useCallback(async (email: string, password: string) => {
     const result = await api<{ user: User } & SessionTokens>("/api/auth/mobile/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
