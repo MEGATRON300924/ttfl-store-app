@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useCallback,useEffect,useState } from "react";
 import { ActivityIndicator,Image,Pressable,RefreshControl,ScrollView,StyleSheet,Text,View } from "react-native";
 import { ProductCard,MobileProduct } from "@/components/ProductCard";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { StoreCard,MobileStore } from "@/components/StoreCard";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -27,7 +28,7 @@ export default function HomeScreen(){
   <View style={styles.hero}><Text style={styles.heroTitle}>Buy it, sell it — with vendors you can trust.</Text><Text style={styles.heroText}>Thousands of listings from verified stores across Nigeria. Checkout on TTFL, message on WhatsApp, or shop direct with the vendor — your call.</Text><View style={styles.heroActions}><Pressable onPress={()=>router.push("/(tabs)/explore")} style={styles.heroButton}><Text style={styles.heroButtonText}>Start shopping</Text></Pressable><Pressable onPress={()=>router.push("/sell")} style={styles.heroSecondary}><Text style={styles.heroSecondaryText}>Sell on TTFL Store</Text></Pressable></View><View style={styles.trustRow}><Trust label="Verified vendors" icon="checkmark-circle"/><Trust label="Secure Paystack checkout" icon="shield-checkmark"/><Trust label="Tracked delivery" icon="locate"/></View></View>
   {loading?<View style={styles.loading}><ActivityIndicator color={theme.colors.ember600}/></View>:<>
    {data.categories.length>0&&<SectionTitle title="Shop by category" action="See all" onPress={()=>router.push("/categories")}/>}
-   {data.categories.length>0&&<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>{data.categories.slice(0,10).map(c=><Pressable key={c.id} onPress={()=>router.push({pathname:"/(tabs)/explore",params:{category:c.slug}})} style={styles.category}><View style={styles.categoryIcon}><Ionicons name={categoryIcon(c.name)} size={21} color={theme.colors.ember500}/></View><Text numberOfLines={2} style={styles.categoryName}>{c.name}</Text></Pressable>)}</ScrollView>}
+   {data.categories.length>0&&<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>{data.categories.slice(0,10).map(c=><Pressable key={c.id} onPress={()=>router.push({pathname:"/(tabs)/explore",params:{category:c.slug}})} style={styles.category}><View style={styles.categoryIcon}><CategoryIcon name={c.name} size={25}/></View><Text numberOfLines={2} style={styles.categoryName}>{c.name}</Text></Pressable>)}</ScrollView>}
    <ProductSection title="Flash Deals" subtitle="Up to 25% off" items={data.flash}/>
    <ProductSection title="Coming Soon" subtitle="Preview what's about to launch" items={data.coming}/>
    <ProductSection title="New Arrivals" subtitle="This week" items={data.newest}/>
