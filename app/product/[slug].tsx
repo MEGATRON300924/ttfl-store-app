@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { GlassCard } from "@/components/GlassCard";
 import { api, ApiError } from "@/lib/api";
 import { DeliveryAddress, useCart } from "@/lib/cart";
@@ -9,11 +10,11 @@ import { theme } from "@/lib/theme";
 
 type Product = {
   id: string; publicProductId?: string; name: string; slug: string; description: string; price: string | number; previousPrice?: string | number | null;
-  currency?: string; condition?: string; stock: number; status?: string; sellingMethod?: "CHECKOUT" | "EXTERNAL_LINK" | "WHATSAPP";
+  currency?: string; condition?: string; stock: number; status?: string; sellingMethod?: "CHECKOUT" | "EXTERNAL_LINK" | "WHATSAPP"; externalUrl?: string | null; videoUrl?: string | null; videos?: Array<{url:string}>;
   location?: string | null; avgRating?: string | null; reviewCount?: number; specifications?: Record<string, string> | null;
   images?: Array<{ id: string; url: string; position: number; isPrimary: boolean }>;
   variations?: unknown;
-  category?: { name: string }; vendor?: { storeName: string; storeSlug: string; verified: boolean; location: string | null };
+  category?: { name: string }; vendor?: { storeName: string; storeSlug: string; verified: boolean; location: string | null; logoUrl?: string|null; bannerUrl?: string|null; tier?: string|null; whatsappNumber?: string|null };
 };
 
 type ProductResponse = { product: Product } | Product | { items?: Product[]; products?: Product[] };
@@ -71,8 +72,12 @@ export default function ProductDetailScreen() {
     return Array.from(groups.entries());
   }, [variations]);
   const previousPrice = Number(product?.previousPrice ?? 0);
-  const image = product?.images?.slice().sort((a, b) => a.position - b.position)[0]?.url;
+  const images = useMemo(() => product?.images?.slice().sort((a,b)=>a.position-b.position) ?? [], [product]);
+  const videoUrl = product?.videoUrl ?? product?.videos?.[0]?.url ?? null;
+  const image = images[0]?.url;
   const unavailable = !product || product.stock <= 0 || product.status === "OUT_OF_STOCK" || product.sellingMethod !== "CHECKOUT";
+  function openWhatsApp(){const number=product?.vendor?.whatsappNumber?.replace(/\\D/g,"");if(!number)return;const text=encodeURIComponent(`Hello ${product.vendor?.storeName??"seller"}, I'm interested in ${product.name}.`);void Linking.openURL(`https://wa.me/${number}?text=${text}`)}
+  function openExternal(){if(product?.externalUrl)void Linking.openURL(product.externalUrl)}
   const addressComplete = Boolean(address.name.trim() && address.phone.trim() && address.line1.trim() && address.city.trim() && address.state.trim());
 
   function saveAddress() {
@@ -101,17 +106,13 @@ export default function ProductDetailScreen() {
         <View style={styles.center}><Text style={styles.error}>{error || "Product not found."}</Text></View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          <View style={styles.imageShell}>
-            {image ? <Image source={{ uri: image }} style={styles.heroImage} resizeMode="cover" /> : <Text style={styles.imageInitial}>{product.name[0]?.toUpperCase()}</Text>}
-            <Pressable onPress={() => router.push("/cart")} style={styles.cartButton}>
-              <Ionicons name="bag-outline" size={20} color="#111" />
-              {count > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{count > 9 ? "9+" : count}</Text></View>}
-            </Pressable>
-          </View>
+          <View style={styles.mediaShell}><ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mediaScroll}>{images.map((item)=><View key={item.id} style={styles.mediaPage}><Image source={{uri:item.url}} style={styles.heroImage} resizeMode="cover"/></View>)}{videoUrl&&<ProductVideo uri={videoUrl}/>}</ScrollView><View style={styles.mediaBadge}><Text style={styles.mediaBadgeText}>{images.length + (videoUrl?1:0)} media</Text></View><Pressable onPress={() => router.push("/cart")} style={styles.cartButton}><Ionicons name="bag-outline" size={20} color={theme.colors.text}/>{count>0&&<View style={styles.badge}><Text style={styles.badgeText}>{count>9?"9+":count}</Text></View>}</Pressable></View>
 
           <View style={styles.metaRow}><Text style={styles.category}>{product.category?.name ?? "Marketplace"}</Text>{product.condition && <Text style={styles.condition}>{product.condition}</Text>}</View>
           <Text style={styles.title}>{product.name}</Text>
           <Text style={styles.price}>{product.currency ?? "₦"}{price.toLocaleString()}</Text>
+          {product.sellingMethod==="EXTERNAL_LINK"&&<Pressable onPress={openExternal} style={styles.externalButton}><Ionicons name="open-outline" size={16} color="#fff"/><Text style={styles.externalText}>Open product website</Text></Pressable>}
+          {product.sellingMethod==="WHATSAPP"&&product.vendor?.whatsappNumber&&<Pressable onPress={openWhatsApp} style={styles.whatsappButton}><Ionicons name="logo-whatsapp" size={17} color="#fff"/><Text style={styles.externalText}>Contact via WhatsApp</Text></Pressable>}
           {variationGroups.map(([group, options]) => (
             <View key={group} style={styles.variationSection}>
               <Text style={styles.variationTitle}>{group}</Text>
@@ -193,7 +194,7 @@ function Field({ label, value, onChangeText, placeholder, keyboardType }: { labe
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.colors.cloud50 }, content: { padding: 18, paddingBottom: 40 }, center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }, error: { color: "#b42318", textAlign: "center" },
-  imageShell: { height: 330, borderRadius: 10, overflow: "hidden", backgroundColor: theme.colors.cloud100, alignItems: "center", justifyContent: "center", position: "relative" }, heroImage: { width: "100%", height: "100%" }, imageInitial: { fontSize: 72, fontWeight: "800", color: "#b5b5b5" },
+  mediaShell: { height: 330, borderRadius: 10, overflow: "hidden", backgroundColor: theme.colors.cloud100, alignItems: "center", justifyContent: "center", position: "relative" }, heroImage: { width: "100%", height: "100%" }, imageInitial: { fontSize: 72, fontWeight: "800", color: "#b5b5b5" },
   cartButton: { position: "absolute", right: 14, top: 14, width: 46, height: 46, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.9)" }, badge: { position: "absolute", right: -2, top: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: theme.colors.ember600, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 }, badgeText: { color: "#fff", fontSize: 9, fontWeight: "800" },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 20 }, category: { fontSize: 11, fontWeight: "800", letterSpacing: 1, color: theme.colors.graphite600 }, condition: { fontSize: 10, fontWeight: "700", color: theme.colors.graphite600, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: theme.colors.cloud100 }, title: { marginTop: 7, fontSize: 29, lineHeight: 34, fontWeight: "800", letterSpacing: -1, color: theme.colors.graphite950 }, price: { marginTop: 11, fontSize: 24, fontWeight: "800", color: theme.colors.graphite950 }, previous: { color: theme.colors.graphite400, textDecorationLine: "line-through", marginTop: 2 },
   variationSection: { marginTop: 16 }, variationTitle: { fontSize: 13, fontWeight: "800", color: "#555", marginBottom: 9 }, variationRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, variationButton: { minHeight: 42, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: theme.colors.graphite300, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }, variationButtonSelected: { backgroundColor: theme.colors.ember600, borderColor: theme.colors.ember600 }, variationButtonText: { color: "#222", fontSize: 13, fontWeight: "700" }, variationButtonTextSelected: { color: "#fff" },
@@ -202,3 +203,5 @@ const styles = StyleSheet.create({
   infoCard: { marginTop: 12, borderRadius: 20, padding: 18 }, sectionTitle: { fontSize: 17, fontWeight: "800", color: theme.colors.graphite950 }, description: { marginTop: 8, fontSize: 14, lineHeight: 21, color: theme.colors.graphite600 }, specs: { marginTop: 15, borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.06)" }, specRow: { flexDirection: "row", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.05)" }, specKey: { flex: 1, color: theme.colors.graphite400, fontSize: 12 }, specValue: { flex: 1, color: "#222", fontSize: 12, textAlign: "right", fontWeight: "600" },
   purchaseRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 16 }, quantity: { height: 54, borderRadius: 15, backgroundColor: "#fff", borderWidth: 1, borderColor: theme.colors.graphite200, flexDirection: "row", alignItems: "center", paddingHorizontal: 5 }, quantityButton: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" }, quantityText: { minWidth: 22, textAlign: "center", fontWeight: "800" }, addButton: { flex: 1, height: 54, borderRadius: 15, backgroundColor: theme.colors.ember600, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, addText: { color: "#fff", fontWeight: "800" }, pressed: { opacity: 0.82 }, disabled: { opacity: 0.45 },
 });
+
+function ProductVideo({uri}:{uri:string}){const player=useVideoPlayer(uri,p=>{p.loop=true;p.muted=true;p.play()});return <View style={styles.mediaPage}><VideoView player={player} style={styles.heroImage} contentFit="cover" nativeControls/></View>}
