@@ -6,13 +6,11 @@ workflows:
 
     environment:
       node: 22.22.0
-      vars:
-        NODE_ENV: production
 
     scripts:
       - name: Install npm dependencies
         script: |
-          npm install
+          npm install --include=dev
 
       - name: Align Expo SDK dependencies
         script: |
@@ -20,7 +18,7 @@ workflows:
 
       - name: Generate Android native project
         script: |
-          npx expo prebuild --platform android --non-interactive
+          NODE_ENV=production npx expo prebuild --platform android --non-interactive
 
       - name: Set Android SDK location
         script: |
