@@ -18,13 +18,15 @@ export type MobileProduct = {
 
 export function ProductCard({ product }: { product: MobileProduct }) {
   const { addItem } = useCart();
-  const { user } = useAuth();\n  const [wishlisted,setWishlisted]=useState(false);
+  const { user } = useAuth();
+  const [wishlisted,setWishlisted]=useState(false);
   const image = product.imageUrl ?? product.images?.slice().sort((a,b) => (a.position ?? 0) - (b.position ?? 0))[0]?.url;
   const price = Number(product.price || 0);
   const old = product.previousPrice ? Number(product.previousPrice) : 0;
   const discount = old > price ? Math.round(100 - (price / old) * 100) : 0;
   const canBuy = !product.comingSoon;
-  const toggleWishlist = async (event?: any) => { event?.stopPropagation?.(); if(!user){router.push("/(auth)/login");return;} try { if(wishlisted) await api(`/api/wishlist/${encodeURIComponent(product.id)}`,{method:"DELETE",auth:true}); else await api("/api/wishlist",{method:"POST",auth:true,body:JSON.stringify({productId:product.id})}); setWishlisted(v=>!v); } catch {} };\n  const addToCart = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock ?? 99, sellingMethod: "CHECKOUT" }, 1); };
+  const toggleWishlist = async (event?: any) => { event?.stopPropagation?.(); if(!user){router.push("/(auth)/login");return;} try { if(wishlisted) await api(`/api/wishlist/${encodeURIComponent(product.id)}`,{method:"DELETE",auth:true}); else await api("/api/wishlist",{method:"POST",auth:true,body:JSON.stringify({productId:product.id})}); setWishlisted(v=>!v); } catch {} };
+  const addToCart = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock ?? 99, sellingMethod: "CHECKOUT" }, 1); };
   const buyNow = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addToCart(); router.push("/cart"); };
 
   return (
