@@ -77,7 +77,7 @@ export default function ProductDetailScreen() {
   const image = images[0]?.url;
   const unavailable = !product || product.stock <= 0 || product.status === "OUT_OF_STOCK" || product.sellingMethod !== "CHECKOUT";
   function openWhatsApp(){const number=product?.vendor?.whatsappNumber?.replace(/\D/g,"");if(!number)return;const text=encodeURIComponent(`Hello ${product.vendor?.storeName??"seller"}, I'm interested in ${product.name}.`);void Linking.openURL(`https://wa.me/${number}?text=${text}`)}
-  function openExternal(){if(product?.externalUrl)void Linking.openURL(product.externalUrl)}
+  function openExternal(){if(product?.externalUrl)router.push({pathname:"/webview",params:{url:product.externalUrl,title:product.name}})}
   const addressComplete = Boolean(address.name.trim() && address.phone.trim() && address.line1.trim() && address.city.trim() && address.state.trim());
 
   function saveAddress() {
