@@ -27,7 +27,6 @@ export function ProductCard({ product }: { product: MobileProduct }) {
   const canBuy = !product.comingSoon;
   const toggleWishlist = async (event?: any) => { event?.stopPropagation?.(); if(!user){router.push("/(auth)/login");return;} try { if(wishlisted) await api(`/api/wishlist/${encodeURIComponent(product.id)}`,{method:"DELETE",auth:true}); else await api("/api/wishlist",{method:"POST",auth:true,body:JSON.stringify({productId:product.id})}); setWishlisted(v=>!v); } catch {} };
   const addToCart = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock ?? 99, sellingMethod: "CHECKOUT" }, 1); };
-  const buyNow = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addToCart(); router.push("/cart"); };
 
   return (
     <Pressable
