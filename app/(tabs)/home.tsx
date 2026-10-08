@@ -33,7 +33,10 @@ export default function HomeScreen(){
    <ProductSection title="Coming Soon" subtitle="Preview what's about to launch" items={data.coming}/>
    <ProductSection title="New Arrivals" subtitle="This week" items={data.newest}/>
    <ProductSection title="Featured products" subtitle="Hand-picked by TTFL Store" items={data.featured}/>
-   {data.stores.length>0&&<View style={styles.section}><SectionTitle title="Verified Stores" action="View all" onPress={()=>router.push("/stores")}/><Text style={styles.sectionSubtitle}>Verified stores you can shop with confidence.</Text><View style={styles.storeGrid}>{data.stores.slice(0,4).map(s=><View key={s.id} style={styles.storeGridItem}><StoreCard store={s}/></View>)}</View></View><View style={styles.pickup}><View style={styles.pickupIcon}><Ionicons name="location-outline" size={22} color={theme.colors.ember500}/></View><View style={styles.pickupCopy}><Text style={styles.pickupKicker}>LOCAL PICKUP</Text><Text style={styles.pickupTitle}>Near You</Text><Text style={styles.pickupText}>Find vendors and products available for local pickup.</Text></View></View>}
+   {data.stores.length>0&&<>
+    <View style={styles.section}><SectionTitle title="Verified Stores" action="View all" onPress={()=>router.push("/stores")}/><Text style={styles.sectionSubtitle}>Verified stores you can shop with confidence.</Text><View style={styles.storeGrid}>{data.stores.slice(0,4).map(s=><View key={s.id} style={styles.storeGridItem}><StoreCard store={s}/></View>)}</View></View>
+    <View style={styles.pickup}><View style={styles.pickupIcon}><Ionicons name="location-outline" size={22} color={theme.colors.ember500}/></View><View style={styles.pickupCopy}><Text style={styles.pickupKicker}>LOCAL PICKUP</Text><Text style={styles.pickupTitle}>Near You</Text><Text style={styles.pickupText}>Find vendors and products available for local pickup.</Text></View></View>
+   </>}
 
   </>}
   <View style={{height:120}}/>
