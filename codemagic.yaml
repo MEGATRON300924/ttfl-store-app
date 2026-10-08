@@ -12,6 +12,17 @@ workflows:
         script: |
           npm install --include=dev
 
+      - name: Normalize Android app icon
+        script: |
+          if command -v sips >/dev/null 2>&1; then
+            sips -s format png assets/icon.png --out /tmp/ttfl-store-icon.png >/dev/null
+            mv /tmp/ttfl-store-icon.png assets/icon.png
+          else
+            echo "sips is unavailable; expected on Codemagic macOS runner"
+            exit 1
+          fi
+          file assets/icon.png
+
       - name: Verify Expo dependency alignment
         script: |
           npx expo install --check
@@ -31,17 +42,6 @@ workflows:
       - name: Bundle Android JavaScript
         script: |
           npx expo export --platform android
-
-      - name: Normalize Android app icon
-        script: |
-          if command -v sips >/dev/null 2>&1; then
-            sips -s format png assets/icon.png --out /tmp/ttfl-store-icon.png >/dev/null
-            mv /tmp/ttfl-store-icon.png assets/icon.png
-          else
-            echo "sips is unavailable; expected on Codemagic macOS runner"
-            exit 1
-          fi
-          file assets/icon.png
 
       - name: Generate Android native project
         script: |
