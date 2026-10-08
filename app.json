@@ -6,11 +6,13 @@
     "orientation": "portrait",
     "scheme": "ttflstore",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ng.name.ttflstore.app",
-      "associatedDomains": ["applinks:ttflstore.name.ng"]
+      "associatedDomains": [
+        "applinks:ttflstore.name.ng"
+      ]
     },
     "android": {
       "package": "ng.name.ttflstore.app",
@@ -22,7 +24,10 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "category": ["BROWSABLE", "DEFAULT"],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
           "data": [
             {
               "scheme": "https",
