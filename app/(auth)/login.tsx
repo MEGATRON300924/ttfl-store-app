@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { WebView } from "react-native-webview";
 import type { WebViewNavigation } from "react-native-webview";
 import { theme } from "@/lib/theme";
+import { useAuth } from "@/lib/auth";
 
 const LOGIN_URL="https://www.ttflstore.name.ng/login?mobile-app=login";
 
