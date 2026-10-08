@@ -24,6 +24,7 @@ type AuthContextValue = {
   signUp: (input: { firstName: string; lastName: string; email: string; phone: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  exchangeHandoff: (token: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -64,7 +65,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [user?.id]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const exchangeHandoff = useCallback(async (token: string) => {\n    const result = await api<{ user: User } & SessionTokens>("/api/auth/handoff/exchange", { method: "POST", body: JSON.stringify({ token }), skipRefresh: true });\n    await saveSession(result);\n    setUser(result.user);\n  }, []);\n\n  const signIn = useCallback(async (email: string, password: string) => {
     const result = await api<{ user: User } & SessionTokens>("/api/auth/mobile/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, signIn, signUp, signOut, refreshUser }), [user, loading, signIn, signUp, signOut, refreshUser]);
+  const value = useMemo(() => ({ user, loading, signIn, signUp, signOut, refreshUser, exchangeHandoff }), [user, loading, signIn, signUp, signOut, refreshUser, exchangeHandoff]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
