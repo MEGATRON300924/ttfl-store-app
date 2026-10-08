@@ -9,8 +9,8 @@ export default function TabsLayout() {
       <Tabs.Screen name="home" options={{ title: "Home" }} />
       <Tabs.Screen name="explore" options={{ title: "Shop" }} />
       <Tabs.Screen name="orders" options={{ title: "Orders" }} />
-      <Tabs.Screen name="account" options={{ title: "Settings" }} />
+      <Tabs.Screen name="account" options={{ title: "Account" }} />
     </Tabs>
-    <LiquidGlassNav isVendor={user?.role === "VENDOR"} />
+    <LiquidGlassNav isVendor={user?.role === "VENDOR"} isLoggedIn={!!user} />
   </>;
 }
