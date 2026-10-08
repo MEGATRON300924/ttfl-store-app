@@ -1,0 +1,27 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { theme } from "@/lib/theme";
+
+const KEY="ttfl_nav_prefs_v1";
+const defaults={layout:"bottom" as "bottom"|"side",items:["home","shop","orders","account"]};
+
+export default function CustomizeApp(){
+ const router=useRouter();
+ const [layout,setLayout]=useState<"bottom"|"side">("bottom");
+ const [items,setItems]=useState(defaults.items);
+ useEffect(()=>{AsyncStorage.getItem(KEY).then(raw=>{if(raw){try{const p=JSON.parse(raw);setLayout(p.layout==="side"?"side":"bottom");setItems(Array.isArray(p.items)?p.items:defaults.items)}catch{}}})},[]);
+ async function save(nextLayout=layout,nextItems=items){await AsyncStorage.setItem(KEY,JSON.stringify({layout:nextLayout,items:nextItems}))}
+ const toggle=(key:string)=>{if(key==="home")return;const next=items.includes(key)?items.filter(x=>x!==key):[...items,key];setItems(next);void save(layout,next)};
+ return <View style={styles.screen}><View style={styles.header}><Pressable onPress={()=>router.back()}><Ionicons name="arrow-back" size={22} color={theme.colors.text}/></Pressable><View style={{marginLeft:14}}><Text style={styles.kicker}>ACCOUNT</Text><Text style={styles.title}>Customize your app</Text></View></View><ScrollView contentContainerStyle={styles.content}>
+ <Text style={styles.section}>NAVIGATION STYLE</Text><View style={styles.choiceRow}><Choice active={layout==="bottom"} icon="remove-outline" title="Bottom" onPress={()=>{setLayout("bottom");void save("bottom",items)}}/><Choice active={layout==="side"} icon="menu-outline" title="Side menu" onPress={()=>{setLayout("side");void save("side",items)}}/></View>
+ <Text style={styles.section}>NAVIGATION BUTTONS</Text><Text style={styles.hint}>Home stays available. Choose the other shortcuts you want in your glass navigation.</Text>
+ {([["shop","Search","search-outline"],["orders","Orders","receipt-outline"],["account","Account","person-outline"]] as const).map(([key,label,icon])=><Pressable key={key} onPress={()=>toggle(key)} style={styles.row}><View style={styles.icon}><Ionicons name={icon} size={19} color={theme.colors.ember500}/></View><View style={styles.copy}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowText}>{items.includes(key)?"Shown in navigation":"Hidden from navigation"}</Text></View><View style={[styles.switch,items.includes(key)&&styles.switchOn]}><View style={[styles.knob,items.includes(key)&&styles.knobOn]}/></View></Pressable>)}
+ <Pressable onPress={()=>{setLayout("bottom");setItems(defaults.items);void save("bottom",defaults.items)}} style={styles.reset}><Text style={styles.resetText}>Reset navigation</Text></Pressable>
+ </ScrollView></View>
+}
+function Choice({active,icon,title,onPress}:{active:boolean;icon:keyof typeof Ionicons.glyphMap;title:string;onPress:()=>void}){return <Pressable onPress={onPress} style={[styles.choice,active&&styles.choiceActive]}><Ionicons name={icon} size={20} color={active?theme.colors.ember500:theme.colors.textMuted}/><Text style={[styles.choiceText,active&&styles.choiceTextActive]}>{title}</Text></Pressable>}
+const styles=StyleSheet.create({screen:{flex:1,backgroundColor:theme.colors.cloud50},header:{height:86,padding:18,paddingTop:28,backgroundColor:theme.colors.surface,flexDirection:"row",alignItems:"center",borderBottomWidth:1,borderBottomColor:theme.colors.glassBorder},kicker:{fontSize:9,fontWeight:"900",letterSpacing:1.4,color:theme.colors.ember500},title:{fontSize:20,fontWeight:"900",color:theme.colors.text,marginTop:2},content:{padding:18,paddingBottom:110},section:{fontSize:10,fontWeight:"900",letterSpacing:1.4,color:theme.colors.textMuted,marginTop:22,marginBottom:9},choiceRow:{flexDirection:"row",gap:10},choice:{flex:1,height:78,borderRadius:16,borderWidth:1,borderColor:theme.colors.glassBorder,backgroundColor:theme.colors.surfaceRaised,alignItems:"center",justifyContent:"center",gap:5},choiceActive:{backgroundColor:theme.colors.glassStrong,borderColor:"rgba(240,106,54,.45)"},choiceText:{fontSize:12,fontWeight:"800",color:theme.colors.textMuted},choiceTextActive:{color:theme.colors.text},hint:{fontSize:12,lineHeight:18,color:theme.colors.textMuted,marginBottom:10},row:{minHeight:70,borderRadius:15,borderWidth:1,borderColor:theme.colors.glassBorder,backgroundColor:theme.colors.surfaceRaised,padding:11,flexDirection:"row",alignItems:"center",marginBottom:8},icon:{width:42,height:42,borderRadius:13,backgroundColor:theme.colors.glass,alignItems:"center",justifyContent:"center"},copy:{flex:1,marginLeft:11},rowTitle:{fontSize:13,fontWeight:"900",color:theme.colors.text},rowText:{fontSize:10.5,color:theme.colors.textMuted,marginTop:3},switch:{width:44,height:25,borderRadius:13,backgroundColor:theme.colors.graphite800,padding:3,justifyContent:"center"},switchOn:{backgroundColor:theme.colors.ember600},knob:{width:19,height:19,borderRadius:10,backgroundColor:theme.colors.textMuted},knobOn:{alignSelf:"flex-end",backgroundColor:"#fff"},reset:{height:48,borderRadius:14,borderWidth:1,borderColor:theme.colors.glassBorder,alignItems:"center",justifyContent:"center",marginTop:18},resetText:{fontSize:12,fontWeight:"900",color:theme.colors.text}}
+);
