@@ -17,7 +17,7 @@ export function ProductCard({ product }: { product: MobileProduct }) {\n  const 
   const image = product.imageUrl ?? product.images?.slice().sort((a,b) => (a.position ?? 0) - (b.position ?? 0))[0]?.url;
   const price = Number(product.price || 0);
   const old = product.previousPrice ? Number(product.previousPrice) : 0;
-  const discount = old > price ? Math.round(100 - (price / old) * 100) : 0;\n  const canBuy = !product.comingSoon;\n  const addToCart = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: 99, sellingMethod: "CHECKOUT" }, 1); };\n  const buyNow = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addToCart(); router.push("/cart"); };
+  const discount = old > price ? Math.round(100 - (price / old) * 100) : 0;\n  const canBuy = !product.comingSoon;\n  const addToCart = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: product.stock ?? 99, sellingMethod: "CHECKOUT" }, 1); };\n  const buyNow = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addToCart(); router.push("/cart"); };
 
   return (
     <Pressable
