@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
 import { api, ApiError } from "./api";
-import { clearSession, getAccessToken, saveSession, type SessionTokens } from "./session";
+import { clearSession, getAccessToken, getRefreshToken, getSavedAccounts, saveAccountSession, saveSession, type SessionTokens } from "./session";
 import { registerPushDevice, unregisterPushDevice } from "./notifications";
 
 export type User = {
@@ -25,13 +25,14 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
   exchangeHandoff: (token: string) => Promise<void>;
+  switchAccount: (id: string) => Promise<void>;\n  savedAccounts: Awaited<ReturnType<typeof getSavedAccounts>>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);\n  const [savedAccounts, setSavedAccounts] = useState<Awaited<ReturnType<typeof getSavedAccounts>>>([]);
   const pushTokenRef = useRef<string | null>(null);
 
   const refreshUser = useCallback(async () => {
@@ -98,7 +99,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, signIn, signUp, signOut, refreshUser, exchangeHandoff }), [user, loading, signIn, signUp, signOut, refreshUser, exchangeHandoff]);
+  const value = useMemo(() => ({ user, loading, signIn, signUp, signOut, refreshUser, exchangeHandoff, switchAccount, savedAccounts }), [user, loading, signIn, signUp, signOut, refreshUser, exchangeHandoff, switchAccount, savedAccounts]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
