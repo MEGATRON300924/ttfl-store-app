@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { GlassCard } from "@/components/GlassCard";
+import { useCart } from "@/lib/cart";
 import { theme, money } from "@/lib/theme";
 
 export type MobileProduct = {
@@ -12,11 +13,11 @@ export type MobileProduct = {
   reviewCount?: number; currency?: string; comingSoon?: boolean;
 };
 
-export function ProductCard({ product }: { product: MobileProduct }) {
+export function ProductCard({ product }: { product: MobileProduct }) {\n  const { addItem } = useCart();
   const image = product.imageUrl ?? product.images?.slice().sort((a,b) => (a.position ?? 0) - (b.position ?? 0))[0]?.url;
   const price = Number(product.price || 0);
   const old = product.previousPrice ? Number(product.previousPrice) : 0;
-  const discount = old > price ? Math.round(100 - (price / old) * 100) : 0;
+  const discount = old > price ? Math.round(100 - (price / old) * 100) : 0;\n  const canBuy = !product.comingSoon;\n  const addToCart = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addItem({ productId: product.id, slug: product.slug, name: product.name, price, currency: product.currency ?? "₦", imageUrl: image, stock: 99, sellingMethod: "CHECKOUT" }, 1); };\n  const buyNow = (event?: any) => { event?.stopPropagation?.(); if (!canBuy) return; addToCart(); router.push("/cart"); };
 
   return (
     <Pressable
@@ -29,7 +30,7 @@ export function ProductCard({ product }: { product: MobileProduct }) {
             <View style={styles.placeholder}><Ionicons name="image-outline" size={28} color={theme.colors.graphite300} /></View>}
           {discount > 0 && <View style={styles.tag}><Text style={styles.tagText}>-{discount}%</Text></View>}
           {product.comingSoon && <View style={styles.soon}><Text style={styles.soonText}>COMING SOON</Text></View>}
-          <View style={styles.wishlist}><Ionicons name="heart-outline" size={17} color={theme.colors.graphite950} /></View>
+          <Pressable onPress={(event) => { event.stopPropagation(); router.push("/wishlist"); }} style={styles.wishlist}><Ionicons name="heart-outline" size={17} color={theme.colors.text} /></Pressable>
         </View>
         <View style={styles.body}>
           <Text numberOfLines={2} style={styles.name}>{product.name}</Text>
