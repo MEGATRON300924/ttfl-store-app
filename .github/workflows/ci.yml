@@ -21,6 +21,14 @@ jobs:
       - name: Install dependencies
         run: npm install --include=dev
 
+      - name: Normalize Android app icon
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y imagemagick
+          magick assets/icon.png /tmp/ttfl-store-icon.png
+          mv /tmp/ttfl-store-icon.png assets/icon.png
+          file assets/icon.png
+
       - name: Verify Expo dependency alignment
         run: npx expo install --check
 
