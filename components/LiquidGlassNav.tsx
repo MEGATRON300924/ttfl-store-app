@@ -44,7 +44,7 @@ const styles=StyleSheet.create({
  shadowShell:{width:"100%",borderRadius:28,shadowColor:"#000",shadowOffset:{width:0,height:12},shadowOpacity:.42,shadowRadius:28,elevation:18},
  sideShell:{width:82},
  shell:{width:"100%",minHeight:76,borderRadius:28,overflow:"hidden",borderWidth:1,borderColor:"rgba(255,255,255,.20)",backgroundColor:"rgba(18,22,30,.64)"},
- glassWash:{...StyleSheet.absoluteFillObject,backgroundColor:"rgba(255,255,255,.045)"},
+ glassWash:{...StyleSheet.absoluteFill,backgroundColor:"rgba(255,255,255,.045)"},
  glow:{position:"absolute",left:"25%",right:"25%",top:-22,height:44,borderRadius:30,backgroundColor:"rgba(240,106,54,.08)"},
  topShine:{position:"absolute",top:0,left:26,right:26,height:1,backgroundColor:"rgba(255,255,255,.42)"},
  nav:{minHeight:76,flexDirection:"row",alignItems:"center",justifyContent:"space-evenly",paddingHorizontal:7,paddingVertical:8},
