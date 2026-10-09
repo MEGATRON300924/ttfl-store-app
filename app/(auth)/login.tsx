@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useRef } from "react";
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
-import type { WebViewNavigation, WebViewShouldStartLoadRequest } from "react-native-webview";
+import type { WebViewNavigation, ShouldStartLoadRequest } from "react-native-webview";
 import { theme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 
@@ -38,7 +38,7 @@ export default function LoginScreen() {
     }
   }
 
-  function shouldStart(request: WebViewShouldStartLoadRequest) {
+  function shouldStart(request: ShouldStartLoadRequest) {
     if (isCallback(request.url)) {
       void handleCallback(request.url);
       return false;
