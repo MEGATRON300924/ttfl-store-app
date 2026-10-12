@@ -1,6 +1,6 @@
-import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Stack } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { GlassCard } from "@/components/GlassCard";
 import { theme } from "@/lib/theme";
@@ -16,7 +16,7 @@ export default function RewardsScreen() {
   const [loading,setLoading]=useState(true);
   const [claiming,setClaiming]=useState(false);
   const [error,setError]=useState("");
-  const fade=useRef(new Animated.Value(0)).current;
+  const [fade]=useState(()=>new Animated.Value(0));
 
   async function load() {
     setLoading(true); setError("");
