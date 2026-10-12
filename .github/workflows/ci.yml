@@ -25,7 +25,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y imagemagick
-          magick assets/icon.png /tmp/ttfl-store-icon.png
+          convert assets/icon.png /tmp/ttfl-store-icon.png
           mv /tmp/ttfl-store-icon.png assets/icon.png
           file assets/icon.png
 
