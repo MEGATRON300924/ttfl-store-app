@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { usePathname, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "@/lib/theme";
 
@@ -11,7 +11,7 @@ type NavItem = { key:string; label:string; icon:keyof typeof Ionicons.glyphMap; 
 
 export function LiquidGlassNav({isVendor,isLoggedIn}:{isVendor:boolean;isLoggedIn:boolean}) {
  const pathname=usePathname(); const router=useRouter(); const insets=useSafeAreaInsets();
- const entrance=useRef(new Animated.Value(isLoggedIn?1:.82)).current;
+ const [entrance]=useState(()=>new Animated.Value(isLoggedIn?1:.82));
  const [layout,setLayout]=useState<"bottom"|"side">("bottom");
  const [preferred,setPreferred]=useState<string[]>(["home","shop","orders","account"]);
  useEffect(()=>{if(!isLoggedIn)return;AsyncStorage.getItem("ttfl_nav_prefs_v1").then(raw=>{if(!raw)return;try{const p=JSON.parse(raw);if(p.layout==="side"||p.layout==="bottom")setLayout(p.layout);if(Array.isArray(p.items))setPreferred(p.items)}catch{}})},[isLoggedIn]);
