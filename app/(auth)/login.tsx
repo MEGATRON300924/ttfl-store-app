@@ -196,7 +196,7 @@ export default function LoginScreen() {
             </Link>
           </View>
 
-          <Pressable onPress={() => router.replace("/")} style={styles.backHome}>
+          <Pressable onPress={() => router.replace("/(tabs)/home")} style={styles.backHome}>
             <Ionicons
               name="arrow-back"
               size={15}
